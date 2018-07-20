@@ -21,7 +21,11 @@ execution_handler = TickBacktestExecutionHandler(events, data_handler)
 while True:
 
     time.sleep(1)
-    data_handler.update()  # 生成 MarketEvent
+
+    if data_handler.continue_backtest:
+        data_handler.update()  # 生成 MarketEvent
+    else:
+        break
 
     while True:
         try:
