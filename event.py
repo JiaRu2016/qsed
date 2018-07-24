@@ -76,5 +76,5 @@ class FillEvent(Event):
         self.fill_flag = fill_flag     # 'PARTIAL', 'ALL', 'CANCELED'
 
     def __repr__(self):
-        return "<FillEvent> [%s] %s.%s %s %d@%.2f" % (self.timestamp, self.symbol, self.exchange, self.direction, self.quantity, self.price)
+        return "<FillEvent> [%s] %s %s %d@%.2f" % (self.timestamp, self.symbol, self.direction, self.quantity, self.price)
 

@@ -7,20 +7,23 @@ import time
 from CSVDataHandler import CSVDataHandler
 from TurtleStrategy import TurtleStrategy
 from NaivePortfolio import NaivePortfolio
-from TickBacktestExecutionHandler import TickBacktestExecutionHandler
+from BarBacktestExecutionHandler import BarBacktestExecutionHandler
 
 
 events = queue.Queue()   # 事件队列
 
-data_handler = CSVDataHandler('data/sample.csv')
+data_handler = CSVDataHandler('data/IF.csv')
+data_handler.set_event_queue(events)
+
 strategy = TurtleStrategy(events, data_handler, {})   # TODO: multiple strategies
 portfolio = NaivePortfolio(events, data_handler)
-execution_handler = TickBacktestExecutionHandler(events, data_handler)
+execution_handler = BarBacktestExecutionHandler(events, data_handler)
 
 
 while True:
 
     time.sleep(1)
+    print('=' * 100)
 
     if data_handler.continue_backtest:
         data_handler.update()  # 生成 MarketEvent

@@ -1,5 +1,5 @@
-from .data import DataHandler
-from .event import MarketEvent
+from data_handler import DataHandler
+from event import MarketEvent
 import os
 import pandas as pd
 

@@ -1,4 +1,4 @@
-from .execution import ExecutionHandler
+from execution import ExecutionHandler
 
 
 class TickBacktestExecutionHandler(ExecutionHandler):

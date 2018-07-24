@@ -12,7 +12,11 @@ class DataHandler(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def get_latest_bars(self, symbol, n=1):
+    def get_prev_bars(self, n=1, columns=None):
+        raise NotImplementedError('Must implement get_latest_bars()')
+
+    @abstractmethod
+    def get_current_bar(self, columns=None):
         raise NotImplementedError('Must implement get_latest_bars()')
 
     @abstractmethod

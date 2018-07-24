@@ -1,5 +1,6 @@
-from .strategy import Strategy
-from .event import MarketEvent, SignalEvent
+from strategy import Strategy
+from event import MarketEvent, SignalEvent
+from data_handler import DataHandler
 
 
 class TurtleStrategy(Strategy):
@@ -20,9 +21,12 @@ class TurtleStrategy(Strategy):
         :return:
         """
         if event.type == 'MARKET':
-            print('processing MarketEvent:')
-            print(event)
+            print('=== strategy === processing MarketEvent:', event)
 
-            signal_event = SignalEvent()
+            current_bar = self.data_handler.get_current_bar()
+            print('=== strategy === current_bar: ', dict(current_bar))
+
+            # TODO on_bar, on_tick etc.
+            signal_event = SignalEvent(symbol='IF', timestamp=-99, signal_direction=1)
 
             self.event_queue.put(signal_event)
