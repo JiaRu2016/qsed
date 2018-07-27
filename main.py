@@ -1,4 +1,6 @@
 # 主程序
+# 命令行运行：
+# $ python main.py
 
 
 import queue

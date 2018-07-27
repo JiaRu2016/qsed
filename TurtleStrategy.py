@@ -1,6 +1,5 @@
-from strategy import Strategy
-from event import MarketEvent, SignalEvent
-from data_handler import DataHandler
+from qsObject import Strategy
+from qsEvent import MarketEvent, SignalEvent
 
 
 class TurtleStrategy(Strategy):

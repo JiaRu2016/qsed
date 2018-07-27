@@ -1,5 +1,5 @@
-from portfolio import Portfolio
-from event import OrderEvent, SignalEvent
+from qsObject import Portfolio
+from qsEvent import OrderEvent, SignalEvent
 import datetime
 
 

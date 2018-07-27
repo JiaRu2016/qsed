@@ -1,5 +1,5 @@
-from execution import ExecutionHandler
-from event import FillEvent, OrderEvent
+from qsObject import ExecutionHandler
+from qsEvent import FillEvent, OrderEvent
 import datetime
 
 
