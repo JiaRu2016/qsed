@@ -5,12 +5,9 @@ import datetime
 import time
 
 
-class bitmexDataGetter(object):
+class bitmexHistoryBarData(object):
     """
-    Get bitMEX data, from REST API
-
-    - history bar data
-    - history tick data
+    Get bitMEX history bar data, from REST API
     """
 
     count = 500    # 每次500条数据
@@ -25,6 +22,8 @@ class bitmexDataGetter(object):
         self._check_start_end(start, end)
         self.start = start
         self.end = end
+
+        self.data = None
 
     @staticmethod
     def _check_bar_type(bar_type):
@@ -75,17 +74,7 @@ class bitmexDataGetter(object):
         return df
 
     def get_history_bar_data(self):
-        """
-
-        :param start: str, eg. "2018-05-17"
-        :param end: str. eg. "2018-07-25"
-        :param symbol: str, eg. "XBTUSD"
-        :param bar_type: str, must be one of [1m,5m,1h,1d]
-        :param pages_wait: int, second between each query
-        :return:
-        """
-
-        txt = 'Getting Data: symbol = %s, %s ~ %s, %s' % (self.symbol, self.start, self.end, self.bar_type)
+        txt = 'Getting bitMEX history bar Data: %s, %s ~ %s, %s' % (self.symbol, self.start, self.end, self.bar_type)
         print(txt)
 
         start_date = datetime.datetime.strptime(self.start, '%Y-%m-%d').date()
@@ -110,23 +99,22 @@ class bitmexDataGetter(object):
 
         self.data = pd.concat([x for x in resulst_lst if x is not None]).reset_index(drop=True)
 
-    def get_history_tick_data(self):
-        pass
-
 
 class bitmexHistoryTickData(object):
-    '''
-
-    '''
+    """
+    bitMEX history tick data, from REST API
+    """
 
     count = 500  # 每次500条数据
     page_wait = 1  # 每次取数据间隔为1秒
 
     def __init__(self, symbol, startTime, endTime):
         self.symbol = symbol
+
         self._check_start_end(startTime, endTime)
         self.startTime = startTime   # '2018-08-10 20:00:00'
         self.endTime = endTime    # '2018-08-10 20:10:00'
+        
         self.data = None
 
     @staticmethod
@@ -134,8 +122,8 @@ class bitmexHistoryTickData(object):
         # start = '2018-01-01'
         # end = '2018-01-03'
         try:
-            start_time = datetime.datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S').date()
-            end_time = datetime.datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S').date()
+            start_time = datetime.datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
+            end_time = datetime.datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
         except Exception as e:
             raise ValueError('Can not format start_time or end_time.' +
                              'Must be string of formmat "2018-08-10 20:10:00"\n' +
