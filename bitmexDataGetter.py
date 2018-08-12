@@ -114,14 +114,93 @@ class bitmexDataGetter(object):
         pass
 
 
+class bitmexHistoryTickData(object):
+    '''
+
+    '''
+
+    count = 500  # 每次500条数据
+    page_wait = 1  # 每次取数据间隔为1秒
+
+    def __init__(self, symbol, startTime, endTime):
+        self.symbol = symbol
+        self._check_start_end(startTime, endTime)
+        self.startTime = startTime   # '2018-08-10 20:00:00'
+        self.endTime = endTime    # '2018-08-10 20:10:00'
+        self.data = None
+
+    @staticmethod
+    def _check_start_end(start_time, end_time):
+        # start = '2018-01-01'
+        # end = '2018-01-03'
+        try:
+            start_time = datetime.datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S').date()
+            end_time = datetime.datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S').date()
+        except Exception as e:
+            raise ValueError('Can not format start_time or end_time.' +
+                             'Must be string of formmat "2018-08-10 20:10:00"\n' +
+                             'Error: %s' % e)
+        if not end_time >= start_time:
+            raise ValueError('end >= start is not True')
+
+    def _get_history_tick_data_one_page(self, page):
+        query_url = 'https://www.bitmex.com/api/v1/trade'
+        query_params = dict(
+            symbol=self.symbol,
+            count=self.count,
+            reverse='false',
+            start=str(self.count * page),  # page=0, start=0; page=1, start=501; ...
+            startTime=self.startTime,
+            endTime=self.endTime,
+        )
+        headers = {'content-type': 'application/json'}
+        col_order = ['symbol', 'timestamp', 'side', 'price', 'size',
+                     'tickDirection', 'homeNotional', 'foreignNotional', 'grossValue', 'trdMatchID']
+        r = requests.get(url=query_url, params=query_params, headers=headers)
+        if r.ok:
+            json_data = r.json()
+            df = pd.DataFrame(json_data, columns=col_order)
+        else:
+            print(r)
+            df = pd.DataFrame(columns=col_order)
+        return df
+
+    def get_history_tick_data(self):
+        print('Getting bitMEX history tick data: %s, %s ~ %s' % (self.symbol, self.startTime, self.endTime))
+        result_lst = []
+        _page = 0
+        while True:
+            _df = self._get_history_tick_data_one_page(page=_page)
+            print('got page %d ... last timestamp is %s' % (_page, _df['timestamp'].iloc[-1]))
+            result_lst.append(_df)
+            if len(_df) < self.count:
+                print('Done')
+                break
+            else:
+                _page += 1
+                time.sleep(self.page_wait)
+        df = pd.concat(result_lst).reset_index(drop=True)
+        self.data = df
+
+
 if __name__ == '__main__':
-    symbol = 'ETHU18'
-    bar_type = '5m'
-    start = '2018-06-19'
-    end = '2018-07-26'
+    if False:
+        symbol = 'ETHU18'
+        bar_type = '5m'
+        start = '2018-06-19'
+        end = '2018-07-26'
 
-    bm_data = bitmexDataGetter(symbol, bar_type, start, end)
-    bm_data.get_history_bar_data()
-    print(bm_data.data)
+        bm_data = bitmexDataGetter(symbol, bar_type, start, end)
+        bm_data.get_history_bar_data()
+        print(bm_data.data)
 
-    bm_data.data.to_pickle('data/bitMEX_%s_%s_%s_%s.pkl' % (symbol, bar_type, start, end))
+        bm_data.data.to_pickle('data/bitMEX_%s_%s_%s_%s.pkl' % (symbol, bar_type, start, end))
+
+    symbol = 'XBTUSD'
+    startTime = '2018-08-10 20:00:00'
+    endTime = '2018-08-10 20:05:00'
+    bm_tick_data = bitmexHistoryTickData(symbol, startTime, endTime)
+    bm_tick_data.get_history_tick_data()
+    print(bm_tick_data.data)
+
+    bm_tick_data.data.to_pickle('data/bitMEX_%s_tickdata.pkl' % (symbol))
