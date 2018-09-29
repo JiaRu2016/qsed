@@ -76,3 +76,32 @@ class bitmexREST(object):
     @staticmethod
     def _add_ts(text):
         return '[API][%s] %s' % (str(datetime.datetime.now()), text)
+    
+    
+if __name__ == '__main__':
+    
+    import json
+
+    
+    with open('accounts.json') as f:
+        acc = json.load(f)
+
+    apiKey = acc[0]['apiKey']
+    apiSecret = acc[0]['apiSecret']
+    bm = bitmexREST(apiKey, apiSecret)
+
+    res = bm.get_positions()
+    if res.ok:
+        print(res.json()[0]['symbol'], res.json()[0]['currentQty'])
+
+    res = res = bm.get_open_orders()
+    if res.ok:
+        print(res.json())
+
+    res = bm.place_order(symbol='XBTUSD', side='Sell', qty=100, limit_price=None)
+    if res.ok:
+        print(res.json())
+
+    res = bm.place_order(symbol='XBTUSD', side='Buy', qty=120, limit_price=6365.0)
+    if res.ok:
+        print(res.json())
