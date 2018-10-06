@@ -119,7 +119,9 @@ class bitmexWS(object):
             self.logger.warn('Unclassified msg; %s' % msg)
     
     def onData(self, msg):
-        print('Calling bitmexWS.onData()')   # expected to be overwrite
+        #print('Calling bitmexWS.onData()')   # expected to be overwrite
+        print('============================================')
+        print(msg)
         
     def __on_error(self, ws, error):
         self.logger.warning('Calling ws.__on_error()')
@@ -149,7 +151,8 @@ if __name__ == '__main__':
     print(apiKey)
     print(apiSecret)
     
-    what = 'market'
+    what = 'market'  # <<<<------- change this to see subscribed data structure
+    
     if what == 'order':
         #### 订阅交易信息
         bmws = bitmexWS(apiKey=apiKey, apiSecret=apiSecret)
@@ -165,7 +168,12 @@ if __name__ == '__main__':
         bmws = bitmexWS(apiKey=None, apiSecret=None)
         bmws.connect()
         bmws.subscribe_topic('trade:XBTUSD')
+    elif what == 'quote':
+        #### （无需Authentication）  "quote",       // 最高层的委托列表
+        bmws = bitmexWS(apiKey=None, apiSecret=None)
+        bmws.connect()
+        bmws.subscribe_topic('quote:XBTUSD')
     else:
         print('invalid subscribe')
-    time.sleep(20)
+    time.sleep(100)
     bmws.exit()

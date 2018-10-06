@@ -26,6 +26,7 @@ def calculate_ts(timestamp, bar_type='1m'):
     """bitmex-timestamp to ts. eg 2018-09-29T06:00:17.271Z -> 20180929060017"""
     return timestamp[:16].replace('T', ' ')  # TODO: now only allow '1m'
 
+# TO-MODIFY: 1.multiple symbol 2. no logic related to bar  3. no touch to main event q, instead touch market_data_q
 class bitmexWSMarket(bitmexWS):
     """bitmexWS subscribing market data (single symbol)"""
     
@@ -33,18 +34,18 @@ class bitmexWSMarket(bitmexWS):
         super().__init__(*args, **kwargs)
         self.logger = generate_logger('bitmexWS_Market')
     
-    def addEventQueue(self, q):
+    def addEventQueue(self, q):  # @TODO: remove it. do not touch main event queue directly. use market_data_q
         self.eventQueue = q
 
-    def subscribe(self, symbol='XBTUSD', bar_type='1m', subscribe_tick=True):
+    def subscribe(self, symbol='XBTUSD', bar_type='1m', push_tick=True):   # @TODO only tick. hold bar in DataHandler
         self.symbol = symbol
         self.bar_type = bar_type
-        self.subscribe_tick = subscribe_tick
+        self.push_tick = push_tick
         self.subscribe_topic('trade:%s' % symbol)  # TODO: subscribe more topic, such as order book
         self._got_partial = False
         self.last_price = None
         
-    def wait_for_lastprice(self):
+    def wait_for_lastprice(self):     # @to-modify, wait for each symbol that has been `subscribe()`ed
         while self.last_price is None:
             self.logger.debug('waiting for lastprice ...')
             time.sleep(1)
@@ -103,10 +104,10 @@ class bitmexWSMarket(bitmexWS):
             self.current_bar.high = max(self.current_bar.high, tick_price)
             self.current_bar.low = min(self.current_bar.low, tick_price)
         # tick event    
-        if self.subscribe_tick:
+        if self.push_tick:
             tick_event = MarketEvent(data={'type':'TICK'})
             self.eventQueue.put(tick_event)
-            self.logger.debug('tick event: last_price is %s' % tick_d['price'])
+            self.logger.debug('tick event: last_price is %s' % tick_d)
         
 if __name__ == '__main__':
     import queue
