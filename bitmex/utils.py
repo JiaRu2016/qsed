@@ -1,4 +1,5 @@
 import logging
+import datetime
 
 
 def generate_logger(loggername='defaultLogger', loglevel='debug', logfile=None):
@@ -45,9 +46,9 @@ def calculate_td_ts(x, bar_type='1m'):
     td = int(td.replace('-', ''))
     
     n, what = int(bar_type[:-1]), bar_type[-1]    
-    h,m,s = sec[:8].split(':')
+    h, m, s = sec[:8].split(':')
     if what == 'h':
-        ts = '%02d' % (int(h)// n * n)
+        ts = '%02d' % (int(h) // n * n)
     elif what == 'm':
         ts = h + '%02d' % (int(m) // n * n)
     elif what == 's':
@@ -55,4 +56,8 @@ def calculate_td_ts(x, bar_type='1m'):
     else:
         raise ValueError('bar_type pattern should be "\\d[h|m|s]"')
         
-    return td,int(ts)
+    return td, int(ts)
+
+
+def now():
+    return datetime.datetime.now().__format__('%Y-%m-%d %H:%M:%S.%f')
