@@ -37,7 +37,7 @@ def generate_logger(loggername='defaultLogger', loglevel='debug', logfile=None):
     return logger
     
     
-def calculate_td_ts(x, bar_type='1m'):
+def calculate_td_ts(x, bar_type):
     """"2018-09-29T06:00:17.271Z -> 20180929, 617"""
     # x = '2018-09-29T06:17:34.271Z'
     # bar_type = '4h'

@@ -17,6 +17,7 @@ event_q = queue.Queue()
 # DataHandler
 datahandler = bitmexDataHandler(g)
 datahandler.add_event_q(event_q)
+datahandler.register_bar_event('XBTUSD', '15s')
 datahandler.run()
 
 # datahandler.register_bar_event('XBTUSD', '1m')
@@ -29,9 +30,9 @@ while True:
     try:
         a = event_q.get(timeout=10)
     except queue.Empty:
-        print('warning: no data in 10 sec')
+        print('❎  主进程 ❎ Warning: no data in 10 sec')
     else:
-        print('✅ ✅ ✅ ✅ ✅ %s' % a)
+        print('✅ ✅ ✅  主进程事件 ✅ ✅ ✅ %s' % a)
 
 
 

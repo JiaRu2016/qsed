@@ -1,4 +1,17 @@
-class Orderbook(object): 
+import copy
+
+
+class MarketData(object):
+    """行情数据类"""
+
+    def __repr__(self):
+        return self.__dict__.__repr__()
+
+    def copy(self):
+        return copy.deepcopy(self)
+
+
+class Orderbook(MarketData):
     def __init__(self, symbol=None, bid1=None, bid1vol=None, ask1=None, ask1vol=None, timestamp=None, receive_time=None):
         self.symbol = symbol
         self.bid1 = bid1
@@ -7,12 +20,9 @@ class Orderbook(object):
         self.ask1vol = ask1vol
         self.timestamp = timestamp
         self.receive_time = receive_time
-        
-    def __repr__(self):
-        return self.__dict__.__repr__()
-        
 
-class Tick(object): 
+
+class Tick(MarketData):
     def __init__(self, symbol=None, price=None, volume=None, direction=None, timestamp=None, receive_time=None):
         self.symbol = symbol
         self.price = price
@@ -21,15 +31,26 @@ class Tick(object):
         self.timestamp = timestamp
         self.receive_time = receive_time
 
-    def __repr__(self):
-        return self.__dict__.__repr__()
+
+class Bar(MarketData):
+    def __init__(self, symbol=None, bar_type=None, td=None, ts=None, open=None, high=None, low=None, close=None, timestamp=None, receive_time=None):
+        self.symbol = symbol
+        self.bar_type = bar_type
+        self.td = td
+        self.ts = ts
+        self.open = open
+        self.high = high
+        self.low = low
+        self.close = close
+        self.volume = None   # TODO: vol, amt, vwap, ticks
+        self.amount = None
+        self.vwap = None
+        self.ticks = None
+        self.timestamp = timestamp         # timestamp of last_price which close the bar, ie. new bar's open tick
+        self.receive_time = receive_time   # receive_time of last_price which close the bar, ie. new bar's open tick
 
 
-class Bar(object):
-    pass
-
-
-class Snapshot(object):
+class Snapshot(MarketData):
     pass
 
 
@@ -49,9 +70,11 @@ class bitmexDataHandler(object):
         self.active = False
         self.logger = generate_logger('DataHandler', g.loglevel, g.logfile)  # 日志
         self.symbols = g.symbols               # 订阅的标的  ['XBTUSD', ...]
-        self.tick = {}                         # {symbol: Tick()}            # 最新的last_price信息
-        self.orderbook = {}                    # {symbol: Orderbook()}       # 最新的orderbook信息
-        self.registered_symbol_bartypes = {}   # {'XBTUSD': ['1m', '30s'], ...}
+        self.tick = {}                         # {symbol: Tick}            # 最新的last_price信息
+        self.orderbook = {}                    # {symbol: Orderbook}       # 最新的orderbook信息
+        self.registered_bar_events = {}   # {'XBTUSD': ['1m', '30s'], ...}
+        self.bar = {}                     # {'XBTUSD': {'1m': Bar, '30s': Bar}, ...}
+        self.prev_bar = {}                # {'XBTUSD': {'1m': Bar, '30s': Bar}, ...}
 
     def add_event_q(self, event_q):
         self.event_q = event_q                # 全局事件队列
@@ -95,50 +118,140 @@ class bitmexDataHandler(object):
         self.bm_ws_market.wait_for_data()
 
     def processTick(self, tick):
-        self.logger.debug('💛 Processing Tick... %s' % tick)
-        self.event_q.put(tick)   # temp, for test
-        
+        self.logger.debug('💛 💛 💛 Processing Tick... %s' % tick)
+        self.event_q.put(tick)   # todo, temp, for test
+
+        # 顺序： bar_close_event, bar_open_event, tick_event
+
+        # 0. 生成bar
+        if self.registered_bar_events.get(tick.symbol):
+            if self.get_current_tick(tick.symbol) is None:   # 边缘情况：如果是第一个Tick
+                # self.__update_tick(tick)
+                self.__init_bar(tick.symbol, tick)
+            else:
+                self.__bar(tick)
+
         # 1. 更新tick(last_price)
         self.__update_tick(tick)
         
         # 2. if 该symbol订阅了tick事件，推送（全局事件队列）
         if False:
             self.__push_tick_event(tick.symbol)
-        
-        # 3. 生成bar
-        self.__bar(tick)
-        
-    def __update_tick(self, tick):
-        tick.receive_time = now()
-        self.tick[tick.symbol] = tick
-    
-    def __push_tick_event(self, symbol):
-        pass
-    
-    def __bar(self, tick):
-        pass
     
     def processOrderbook(self, ob):
-        self.logger.debug('✡️ Processing Orderbook... %s' % ob)
-        self.event_q.put(ob)    # temp, for test
+        self.logger.debug('💜 💜 💜️ Processing Orderbook... %s' % ob)
+        self.event_q.put(ob)    # todo, temp, for test
         
         # 1. 更新Orderbook
         self.__update_orderbook(ob)
         
         # 2. if 该symbol订阅了orderbook事件，推送（全局事件队列）
         if False:
-            self.__push_orderbook_event(tick.symbol)
-        
+            self.__push_orderbook_event(tick.symbol)   # TODO: register_tick/orderbook_event
+
+    def __update_tick(self, tick):
+        tick.receive_time = now()
+        self.tick[tick.symbol] = tick
+
     def __update_orderbook(self, ob):
         ob.receive_time = now()
         self.orderbook[ob.symbol] = ob
+
+    def __push_tick_event(self, symbol):
+        pass
     
     def __push_orderbook_event(self, symbol):
         pass
     
     def register_bar_event(self, symbol, bar_type):
+        """生成何种类型的bar
+
+        更新 self.registered_bar_events,  which is {symbol: ['1m', '30s'], ...}
+        初始化 self.bar, self.prev_bar
+        """
+        if symbol not in self.symbols:
+            self.logger.warning('registering symbol "%s" of bar_type "%s", '
+                                'but symbol not in self.symbols: %s' % (symbol, bar_type, self.symbols))
+            return
+        if symbol not in self.registered_bar_events:
+            self.registered_bar_events[symbol] = []
+            self.bar[symbol] = {}
+            self.prev_bar[symbol] = {}
+        if bar_type not in self.registered_bar_events[symbol]:
+            self.registered_bar_events[symbol].append(bar_type)
+            self.logger.info('Registered. %s: %s' % (symbol, bar_type))
+            self.bar[symbol][bar_type] = Bar()
+            self.prev_bar[symbol][bar_type] = Bar()
+        else:
+            self.logger.info('Registering bar: bar_type "%s" already exist in symbol "%s"' % (bar_type, symbol))
+
+    def __init_bar(self, symbol, tick):
+        """得到该symbol的一个tick时被调用。
+        用tick初始化所有bar_type的第一个bar
+        """
+        if symbol in self.bar:
+            for bar_type in self.bar[symbol]:
+                td, ts = calculate_td_ts(tick.timestamp, bar_type)
+                bar = Bar(symbol=symbol, bar_type=bar_type, td=td, ts=ts, open=tick.price, high=tick.price, low=tick.price)
+                self.bar[symbol][bar_type] = bar
+                print('$$$$$$$$$ self.bar: %s' % self.bar)
+                prev_bar = bar.copy()
+                prev_bar.ts -= 1   # TODO
+                self.prev_bar[symbol][bar_type] = prev_bar
+                self.logger.info('================ Init bar: <%s:%s>' % (symbol, bar_type))
+
+    def __bar(self, tick):
+        symbol = tick.symbol
+        bar_types = self.registered_bar_events[symbol]
+
+        for bar_type in bar_types:
+
+            current_bar = self.get_current_bar(symbol, bar_type)
+            current_tick = self.get_current_tick(symbol)  # 注意此时tick还未更新
+            assert isinstance(current_bar, Bar), 'current_bar.__class__ is %s' % current_bar.__class__
+            assert isinstance(current_tick, Tick), 'current_tick.__class__ is %s' % current_tick.__class__
+
+            td, ts = calculate_td_ts(tick.timestamp, bar_type)
+
+            if (td, ts) > (current_bar.td, current_bar.ts):
+                # bar_close
+                current_bar.close = current_tick.price
+                current_bar.receive_time = now()
+                self.prev_bar[symbol][bar_type] = current_bar  # move to prev_bar
+                self.bar[symbol][bar_type] = None
+                self.__push_bar_close_event()
+                # bar_open
+                self.bar[symbol][bar_type] = Bar(symbol=symbol, bar_type=bar_type, td=td, ts=ts,
+                                                 open=tick.price, high=tick.price, low=tick.price, close=None,
+                                                 timestamp=tick.timestamp, receive_time=None)
+                self.__push_bar_open_event()
+            else:
+                self.bar[symbol][bar_type].high = max(tick.price, current_bar.high)
+                self.bar[symbol][bar_type].low = min(tick.price, current_bar.low)
+
+    def __push_bar_close_event(self):
+        self.event_q.put('💙 💙 💙  bar_close event, self.bar is %s' % self.bar)
         pass
-    
+
+    def __push_bar_open_event(self):
+        self.event_q.put('💙 💙 💙  bar_open event')
+        pass
+
+    def get_current_bar(self, symbol, bar_type):
+        try:
+            return self.bar.get(symbol).get(bar_type)
+        except AttributeError:
+            return None
+
+    def get_prev_bar(self, symbol, bar_type):
+        try:
+            return self.prev_bar.get(symbol).get(bar_type)
+        except AttributeError:
+            return None
+
+    def get_current_tick(self, symbol):
+        return self.tick.get(symbol)
+
     def snapshot(self, symbol):
         """参照国内期货快照数据结构"""
         pass
