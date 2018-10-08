@@ -139,11 +139,10 @@ class bitmexDataHandler(object):
                 td, ts = calculate_td_ts(tick.timestamp, bar_type)
                 bar = Bar(symbol=symbol, bar_type=bar_type, td=td, ts=ts, open=tick.price, high=tick.price, low=tick.price)
                 self.bar[symbol][bar_type] = bar
-                print('$$$$$$$$$ self.bar: %s' % self.bar)
-                prev_bar = bar.copy()
-                prev_bar.ts -= 1   # TODO
+                self.logger.debug('💙 __init_bar() 💙 self.bar: %s' % self.bar)
+                prev_bar = Bar(symbol=symbol, bar_type=bar_type, td=td, ts=ts-1)
                 self.prev_bar[symbol][bar_type] = prev_bar
-                self.logger.info('================ Init bar: <%s:%s>' % (symbol, bar_type))
+                self.logger.info('💙 __init_bar() 💙 self.prev_bar: %s' % self.prev_bar)
 
     def __bar(self, tick):
         symbol = tick.symbol
@@ -175,11 +174,11 @@ class bitmexDataHandler(object):
                 self.bar[symbol][bar_type].low = min(tick.price, current_bar.low)
 
     def __push_bar_close_event(self):
-        self.event_q.put('💙 💙 💙  bar_close event, self.bar is %s' % self.bar)
+        self.event_q.put('💙 💙 💙  bar_close event, self.prev_bar is %s' % self.prev_bar)
         pass
 
     def __push_bar_open_event(self):
-        self.event_q.put('💙 💙 💙  bar_open event')
+        self.event_q.put('💙 💙 💙  bar_open event, self.bar is %s' % self.bar)
         pass
 
     def get_current_bar(self, symbol, bar_type):
