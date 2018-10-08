@@ -2,8 +2,8 @@ import requests
 import datetime
 import json
 import time
-from APIKeyAuthWithExpires import APIKeyAuthWithExpires
-from utils import generate_logger
+from .APIKeyAuthWithExpires import APIKeyAuthWithExpires
+from .utils import generate_logger
 
 
 class bitmexREST(object):

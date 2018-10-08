@@ -1,8 +1,8 @@
-from bitmexWS import bitmexWS
-from bitmexREST import bitmexREST
-from utils import generate_logger
+from .bitmexWS import bitmexWS
+from .bitmexREST import bitmexREST
+from .utils import generate_logger
 import time
-from DataHandler import Tick, Orderbook
+from qsDataStructure import Tick, Orderbook
 
 
 class bitmexWSMarket2(bitmexWS):

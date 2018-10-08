@@ -3,8 +3,8 @@ import threading
 import json
 import time
 import logging
-from APIKeyAuth import generate_nonce, generate_signature
-from utils import generate_logger
+from .APIKeyAuth import generate_nonce, generate_signature
+from .utils import generate_logger
 
 
 class bitmexWS(object):

@@ -1,9 +1,7 @@
-# DEPRECATED, use ROOT/main.py
-
+#   TODO: FIX BUG: bar is None. Check if it is same in master branch
 # 主程序
-from .GlobalSettings import GlobalSettings
-from .bitmexDataHandler import bitmexDataHandler
-from qsDataStructure import Tick, Orderbook
+from bitmex.GlobalSettings import GlobalSettings
+from bitmex.bitmexDataHandler import bitmexDataHandler
 import queue
 import time
 
@@ -41,6 +39,7 @@ while True:
 
 # time.sleep(60)
 # datahandler.exit()
+
 
 
 
