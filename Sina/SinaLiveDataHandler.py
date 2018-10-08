@@ -1,8 +1,7 @@
 import requests
-from data import DataHandler
 
 
-class SinaLiveDataHandler(DataHandler):
+class SinaLiveDataHandler(object):
     """
     新浪财经实时行情
     http://hq.sinajs.cn/list=<symbol>  symbol must be uppercase
@@ -55,7 +54,7 @@ if __name__ == '__main__':
 
     data = SinaLiveDataHandler()
 
-    symbol = 'sc1809'   # 测试，用活跃合约
+    symbol = 'sc1901'   # 测试，用活跃合约
 
     for _ in range(30):
         tick_data_1 = data.get_live_tick_by_instrument_id(symbol)

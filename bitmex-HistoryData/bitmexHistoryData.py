@@ -172,23 +172,23 @@ class bitmexHistoryTickData(object):
 
 
 if __name__ == '__main__':
-    if False:
-        symbol = 'ETHU18'
-        bar_type = '5m'
-        start = '2018-06-19'
-        end = '2018-07-26'
+    if True:
+        symbol = 'ETHZ18'
+        bar_type = '1h'
+        start = '2018-10-05'
+        end = '2018-10-08'
 
-        bm_data = bitmexDataGetter(symbol, bar_type, start, end)
+        bm_data = bitmexHistoryBarData(symbol, bar_type, start, end)
         bm_data.get_history_bar_data()
         print(bm_data.data)
 
         bm_data.data.to_pickle('data/bitMEX_%s_%s_%s_%s.pkl' % (symbol, bar_type, start, end))
+    else:
+        symbol = 'XBTUSD'
+        startTime = '2018-10-07 20:00:00'
+        endTime = '2018-10-07 20:05:00'
+        bm_tick_data = bitmexHistoryTickData(symbol, startTime, endTime)
+        bm_tick_data.get_history_tick_data()
+        print(bm_tick_data.data)
 
-    symbol = 'XBTUSD'
-    startTime = '2018-08-10 20:00:00'
-    endTime = '2018-08-10 20:05:00'
-    bm_tick_data = bitmexHistoryTickData(symbol, startTime, endTime)
-    bm_tick_data.get_history_tick_data()
-    print(bm_tick_data.data)
-
-    bm_tick_data.data.to_pickle('data/bitMEX_%s_tickdata.pkl' % (symbol))
+        bm_tick_data.data.to_pickle('data/bitMEX_%s_tickdata_2.pkl' % (symbol))
