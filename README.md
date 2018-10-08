@@ -17,5 +17,38 @@ inspired by quantstart (www.quantstart.com) series articles:
 
 ## Mind Map
 
-![mind map](./mindmap/Event Driven Backtester.png)
+<!-- ![mind map](./mindmap/Event-Driven-Backtester.png) -->
 
+
+## Dirs
+
+### event-driven-demo/
+
+Demo of quantstart series articles.
+
+```angular2html
+cd event-driven-demo
+python main.py
+```
+
+### bitmex/
+
+```angular2html
+cd bitmex
+python main.py       # test bitmexDataHandler with main.py
+python test-OMS.py   # test OMS: bitmex Target-Position-Based OMS, with random signaller
+```
+
+### bitmex-HistoryData/
+
+```angular2html
+cd bitmex-HistoryData/
+python bitmexHistoryData.py  # unit test
+```
+
+### Sina/
+
+```angular2html
+cd Sina/
+python SinaLiveDataHandler.py  # unit test
+```
