@@ -19,8 +19,15 @@ class eventEngine(object):
     def __init__(self):
         self.__queue = queue.Queue()    # 事件队列
         self.__handlers = {}            # 事件处理函数映射
+        self.__general_handlers = []    # 通用事件处理函数
         self.__run_thread = None        # 事件处理线程
         self.__active = False           # 引擎开关
+
+        self.register_general_handler(self.__print_event)
+
+    def __print_event(self, event):
+        assert isinstance(event, Event)
+        print('✅ ✅ ✅  Event ✅ ✅ ✅   type_=%s, dict_=%s' % (event.type_, event.dict_))
 
     def start(self):
         """启动引擎"""
@@ -39,7 +46,7 @@ class eventEngine(object):
             try:
                 event = self.__queue.get(timeout=5)
             except queue.Empty:
-                print('eventEngine: 5 seconds no event')
+                print('❎  eventEngine ❎  5 seconds no event')
             else:
                 self.__process(event)
 
@@ -50,7 +57,9 @@ class eventEngine(object):
         if event_type in self.__handlers:
             for func in self.__handlers[event_type]:
                 func(event)
-
+        if self.__general_handlers:
+            for func in self.__general_handlers:
+                func(event)
 
     def register(self, event_type, func):
         """注册事件处理函数"""
@@ -68,6 +77,13 @@ class eventEngine(object):
                 print('func %s is not in self.__handlers[event_type] list' % func)
         else:
             print('event_type %s is not in self.__handlers' % event_type)
+
+    def register_general_handler(self, func):
+        self.__general_handlers.append(func)
+
+    def unregister_general_handler(self, func):
+        if func in self.__general_handlers:
+            self.__general_handlers.remove(func)
 
     def put(self, event):
         """向队列中放入事件"""

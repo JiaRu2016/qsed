@@ -37,6 +37,9 @@ EVENT_BAR_OPEN = 'eBarOpen'       # BAR_OPEN
 EVENT_BAR_CLOSE = 'eBarClose'     # BAR_CLOSE
 
 
+# 策略信号相关
+EVENT_SIGNAL = 'eSignal'          # 策略信号事件
+
 # 交易相关
 
 EVENT_TARGET_POSITION = 'eTargetPosition'   # 目标仓位事件

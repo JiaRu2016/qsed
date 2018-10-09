@@ -1,4 +1,5 @@
-#   TODO: FIX BUG: bar is None. Check if it is same in master branch
+# DEPRECATED. use qsMainEngine.py
+
 # 主程序
 from bitmex.GlobalSettings import GlobalSettings
 from bitmex.bitmexDataHandler import bitmexDataHandler

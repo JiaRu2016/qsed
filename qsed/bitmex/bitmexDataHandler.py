@@ -1,4 +1,6 @@
 from qsDataStructure import Orderbook, Tick, Bar, Snapshot
+from event.eventEngine import Event
+from event.eventType import EVENT_ORDERBOOK, EVENT_TICK, EVENT_BAR_OPEN, EVENT_BAR_CLOSE
 from .bitmexWSMarket2 import bitmexWSMarket2
 from .bitmexREST import bitmexREST
 from .utils import generate_logger, calculate_td_ts, now
@@ -21,8 +23,8 @@ class bitmexDataHandler(object):
         self.bar = {}                     # {'XBTUSD': {'1m': Bar, '30s': Bar}, ...}
         self.prev_bar = {}                # {'XBTUSD': {'1m': Bar, '30s': Bar}, ...}
 
-    def add_event_q(self, event_q):
-        self.event_q = event_q                # 全局事件队列
+    def add_event_engine(self, event_engine):
+        self.event_engine = event_engine      # 事件引擎
         
     def run(self):
         self.__construct_bm_ws_market()
@@ -64,7 +66,6 @@ class bitmexDataHandler(object):
 
     def processTick(self, tick):
         self.logger.debug('💛 💛 💛 Processing Tick... %s' % tick)
-        self.event_q.put(tick)   # todo, temp, for test
 
         # 顺序： bar_close_event, bar_open_event, tick_event
 
@@ -80,19 +81,18 @@ class bitmexDataHandler(object):
         self.__update_tick(tick)
         
         # 2. if 该symbol订阅了tick事件，推送（全局事件队列）
-        if False:
+        if True:
             self.__push_tick_event(tick.symbol)
     
     def processOrderbook(self, ob):
         self.logger.debug('💜 💜 💜️ Processing Orderbook... %s' % ob)
-        self.event_q.put(ob)    # todo, temp, for test
         
         # 1. 更新Orderbook
         self.__update_orderbook(ob)
         
         # 2. if 该symbol订阅了orderbook事件，推送（全局事件队列）
-        if False:
-            self.__push_orderbook_event(tick.symbol)   # TODO: register_tick/orderbook_event
+        if True:
+            self.__push_orderbook_event(ob.symbol)   # TODO: register_tick/orderbook_event
 
     def __update_tick(self, tick):
         tick.receive_time = now()
@@ -103,10 +103,14 @@ class bitmexDataHandler(object):
         self.orderbook[ob.symbol] = ob
 
     def __push_tick_event(self, symbol):
-        pass
+        e = Event(type_=EVENT_TICK)
+        e.dict_ = {'symbol': symbol}
+        self.event_engine.put(e)
     
     def __push_orderbook_event(self, symbol):
-        pass
+        e = Event(type_=EVENT_ORDERBOOK)
+        e.dict_ = {'symbol': symbol}
+        self.event_engine.put(e)
     
     def register_bar_event(self, symbol, bar_type):
         """生成何种类型的bar
@@ -163,23 +167,27 @@ class bitmexDataHandler(object):
                 current_bar.receive_time = now()
                 self.prev_bar[symbol][bar_type] = current_bar  # move to prev_bar
                 self.bar[symbol][bar_type] = None
-                self.__push_bar_close_event()
+                self.__push_bar_close_event(symbol, bar_type)
                 # bar_open
                 self.bar[symbol][bar_type] = Bar(symbol=symbol, bar_type=bar_type, td=td, ts=ts,
                                                  open=tick.price, high=tick.price, low=tick.price, close=None,
                                                  timestamp=tick.timestamp, receive_time=None)
-                self.__push_bar_open_event()
+                self.__push_bar_open_event(symbol, bar_type)
             else:
                 self.bar[symbol][bar_type].high = max(tick.price, current_bar.high)
                 self.bar[symbol][bar_type].low = min(tick.price, current_bar.low)
 
-    def __push_bar_close_event(self):
-        self.event_q.put('💙 💙 💙  bar_close event, self.prev_bar is %s' % self.prev_bar)
-        pass
+    def __push_bar_close_event(self, symbol, bar_type):
+        e = Event(type_=EVENT_BAR_CLOSE)
+        e.dict_ = {'symbol': symbol, 'bar_type': bar_type}
+        self.event_engine.put(e)
+        self.logger.info('💙 💙 💙  bar_close event, self.prev_bar is %s' % self.prev_bar)
 
-    def __push_bar_open_event(self):
-        self.event_q.put('💙 💙 💙  bar_open event, self.bar is %s' % self.bar)
-        pass
+    def __push_bar_open_event(self, symbol, bar_type):
+        e = Event(type_=EVENT_BAR_OPEN)
+        e.dict_ = {'symbol': symbol, 'bar_type': bar_type}
+        self.event_engine.put(e)
+        self.logger.info('💙 💙 💙  bar_open event, self.bar is %s' % self.bar)
 
     def get_current_bar(self, symbol, bar_type):
         try:
