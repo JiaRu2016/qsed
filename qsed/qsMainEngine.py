@@ -2,7 +2,8 @@ from bitmex.GlobalSettings import GlobalSettings
 from bitmex.bitmexDataHandler import bitmexDataHandler
 # from bitmex.OMS import bitmexTargetPositionOMS
 from event.eventEngine import eventEngine
-from event.eventType import *
+from event.eventType import EVENT_TICK, EVENT_BAR_OPEN, EVENT_BAR_CLOSE, EVENT_SIGNAL, EVENT_TARGET_POSITION
+from EmaStrategy import EmaStrategy
 import queue
 import time
 
@@ -21,24 +22,25 @@ class MainEngine(object):
         # 数据引擎 DataHandler
         self.data_handler = bitmexDataHandler(self.g)  # todo
         self.data_handler.add_event_engine(self.event_engine)
+        self.data_handler.register_tick_event('XBTUSD')    # TODO
         self.data_handler.register_bar_event('XBTUSD', '15s')
 
-        # # strategy
-        # strategy_configs = [
-        #     {
-        #         'symbol': 'XBTUSD',
-        #         'bar_type': '1m',
-        #         'params': {'slow': 5, 'fast': 10},
-        #     }
-        # ]
-        # config = strategy_configs[0]
-        # self.strategy = MaStrategy(config['symbol'], config['bar_type'], config['params'])
-        #
-        # self.strategy.add_event_engine(self.event_engine)
-        # self.event_engine.register(EVENT_TICK, self.strategy.on_tick)
-        # self.event_engine.register(EVENT_BAR_OPEN, self.strategy.on_bar_open)
-        # self.event_engine.register(EVENT_BAR_CLOSE, self.strategy.on_bar_close)
-        #
+        strategy_configs = [
+            {
+                'symbol': 'XBTUSD',
+                'bar_type': '15s',
+                'para': {'slow': 5, 'fast': 10},
+            }
+        ]
+        config = strategy_configs[0]
+        self.strategy = EmaStrategy(config)
+        self.strategy.add_data_handler(self.data_handler)
+
+        self.strategy.add_event_engine(self.event_engine)
+        self.event_engine.register(EVENT_TICK, self.strategy.on_tick)
+        self.event_engine.register(EVENT_BAR_OPEN, self.strategy.on_bar_open)
+        self.event_engine.register(EVENT_BAR_CLOSE, self.strategy.on_bar_close)
+
         # # portfolio
         # self.portfolio = NaivePortfolio()
         #
@@ -54,8 +56,10 @@ class MainEngine(object):
 
 
     def start(self):
-        self.event_engine.start()   # 启动事件引擎
-        self.data_handler.run()     # 启动数据引擎
+        self.event_engine.start()          # 启动事件引擎
+        self.data_handler.start()          # 启动数据引擎
+        self.data_handler.get_init_data()  # 获取历史回看数据 TODO  正常是先要实时数据，根据第一个tcik时间戳再获取历史数据
+        self.strategy.on_init()            # 策略初始化  todo fix bug: on_init called before first Tick
 
     def stop(self):
         self.data_handler.stop()

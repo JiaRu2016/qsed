@@ -1,4 +1,5 @@
 from qsDataStructure import Orderbook, Tick, Bar, Snapshot
+from qsObject import DataHandler
 from event.eventEngine import Event
 from event.eventType import EVENT_ORDERBOOK, EVENT_TICK, EVENT_BAR_OPEN, EVENT_BAR_CLOSE
 from .bitmexWSMarket2 import bitmexWSMarket2
@@ -8,7 +9,7 @@ import queue
 import threading
 
 
-class bitmexDataHandler(object):
+class bitmexDataHandler(DataHandler):
     def __init__(self, g):
         self.g = g                            # global settings
         self.event_q = None                   # 全局事件队列
@@ -26,11 +27,14 @@ class bitmexDataHandler(object):
     def add_event_engine(self, event_engine):
         self.event_engine = event_engine      # 事件引擎
         
-    def run(self):
+    def start(self):
         self.__construct_bm_ws_market()
         self.td_run = threading.Thread(target=self.__run)
         self.active = True
         self.td_run.start()
+
+    def get_init_data(self):
+        pass
 
     def __run(self):  
         while self.active:
@@ -82,7 +86,7 @@ class bitmexDataHandler(object):
         
         # 2. if 该symbol订阅了tick事件，推送（全局事件队列）
         if True:
-            self.__push_tick_event(tick.symbol)
+            self.__push_tick_event(tick.symbol)     # TODO: register_tick_event
     
     def processOrderbook(self, ob):
         self.logger.debug('💜 💜 💜️ Processing Orderbook... %s' % ob)
@@ -92,7 +96,7 @@ class bitmexDataHandler(object):
         
         # 2. if 该symbol订阅了orderbook事件，推送（全局事件队列）
         if True:
-            self.__push_orderbook_event(ob.symbol)   # TODO: register_tick/orderbook_event
+            self.__push_orderbook_event(ob.symbol)   # TODO: register_orderbook_event
 
     def __update_tick(self, tick):
         tick.receive_time = now()
@@ -111,6 +115,12 @@ class bitmexDataHandler(object):
         e = Event(type_=EVENT_ORDERBOOK)
         e.dict_ = {'symbol': symbol}
         self.event_engine.put(e)
+
+    def register_orderbook_event(self, symbol):
+        pass
+
+    def register_tick_event(self, symbol):
+        pass
     
     def register_bar_event(self, symbol, bar_type):
         """生成何种类型的bar

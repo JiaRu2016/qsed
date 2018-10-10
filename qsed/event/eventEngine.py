@@ -56,7 +56,7 @@ class eventEngine(object):
         event_type = event.type_
         if event_type in self.__handlers:
             for func in self.__handlers[event_type]:
-                func(event)
+                func()   # func(event)  TODO: 仍为带参数的，但注册的on_tick事件handlers为strategy分发器，分发器再次调用每个实际策略的的on_tick()
         if self.__general_handlers:
             for func in self.__general_handlers:
                 func(event)
