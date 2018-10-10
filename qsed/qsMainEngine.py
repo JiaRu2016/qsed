@@ -4,6 +4,7 @@ from bitmex.bitmexDataHandler import bitmexDataHandler
 from event.eventEngine import eventEngine
 from event.eventType import EVENT_TICK, EVENT_BAR_OPEN, EVENT_BAR_CLOSE, EVENT_SIGNAL, EVENT_TARGET_POSITION
 from EmaStrategy import EmaStrategy
+from CtaNaivePortfolio import CtaNaivePortfolio
 import queue
 import time
 
@@ -27,26 +28,46 @@ class MainEngine(object):
 
         strategy_configs = [
             {
+                'identifier': 'EmaStrategy_XBTUSD_15s_9999',
                 'symbol': 'XBTUSD',
                 'bar_type': '15s',
                 'para': {'slow': 5, 'fast': 10},
+            },
+            {
+                'identifier': 'EmaStrategy_XBTUSD_15s_8888',
+                'symbol': 'XBTUSD',
+                'bar_type': '15s',
+                'para': {'slow': 15, 'fast': 30},
             }
         ]
-        config = strategy_configs[0]
-        self.strategy = EmaStrategy(config)
-        self.strategy.add_data_handler(self.data_handler)
+        self.strategy_pool = []
 
-        self.strategy.add_event_engine(self.event_engine)
-        self.event_engine.register(EVENT_TICK, self.strategy.on_tick)
-        self.event_engine.register(EVENT_BAR_OPEN, self.strategy.on_bar_open)
-        self.event_engine.register(EVENT_BAR_CLOSE, self.strategy.on_bar_close)
+        for config in strategy_configs:
+            strategy = EmaStrategy(config)
+            strategy.add_data_handler(self.data_handler)
+            strategy.add_event_engine(self.event_engine)
+            self.strategy_pool.append(strategy)
 
-        # # portfolio
-        # self.portfolio = NaivePortfolio()
-        #
-        # self.portfolio.add_event_engine(self.event_engine)
-        # self.event_engine.register(EVENT_SIGNAL, self.portfolio.on_signal_event)
-        #
+        for strategy in self.strategy_pool:
+            self.event_engine.register(EVENT_TICK, strategy.on_tick)
+            self.event_engine.register(EVENT_BAR_OPEN, strategy.on_bar_open)
+            self.event_engine.register(EVENT_BAR_CLOSE, strategy.on_bar_close)
+
+
+        # portfolio  TODO: multiply portfolios
+
+        self.portfolio = CtaNaivePortfolio()
+        self.portfolio.add_event_engine(self.event_engine)
+        identifier_multiplier = {
+            'EmaStrategy_XBTUSD_15s_8888': 10,
+            'EmaStrategy_XBTUSD_15s_9999': 20
+        }
+        symbol_multiplier = {
+            'XBTUSD': 1
+        }
+        self.portfolio.config(identifier_multiplier=identifier_multiplier, symbol_multiplier=symbol_multiplier)
+        self.event_engine.register(EVENT_SIGNAL, self.portfolio.on_signal_event)
+
         # # executor
         # self.oms = bitmexTargetPositionOMS()
         #
@@ -54,12 +75,12 @@ class MainEngine(object):
         # self.event_engine.register(EVENT_TARGET_POSITION, self.oms.on_target_position_event)
         # self.event_engine.register(EVENT_ORDERBOOK, self.oms.on_orderbook_event)
 
-
     def start(self):
         self.event_engine.start()          # 启动事件引擎
         self.data_handler.start()          # 启动数据引擎
         self.data_handler.get_init_data()  # 获取历史回看数据 TODO  正常是先要实时数据，根据第一个tcik时间戳再获取历史数据
-        self.strategy.on_init()            # 策略初始化  todo fix bug: on_init called before first Tick
+        for strategy in self.strategy_pool:
+            strategy.on_init()             # 策略初始化  todo fix bug: on_init called before first Tick
 
     def stop(self):
         self.data_handler.stop()

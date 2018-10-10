@@ -22,6 +22,7 @@ class EmaStrategy(Strategy):
 
     def __init__(self, config):
         self.config = config
+        self.identifier = config['identifier']
         self.para = config['para']
         self.symbol = config['symbol']
         self.bar_type = config['bar_type']
@@ -50,10 +51,10 @@ class EmaStrategy(Strategy):
         while self.__get_current_tick() is None:
             time.sleep(0.5)
 
-    def on_bar_close(self):
+    def on_bar_close(self, event):
         pass
 
-    def on_bar_open(self):
+    def on_bar_open(self, event):
         print('Calling strategy.on_bar_open() .........')
         prev_bar = self.__get_prev_bar()
 
@@ -82,7 +83,7 @@ class EmaStrategy(Strategy):
         else:
             self.context.target_position = 0
 
-    def on_tick(self):
+    def on_tick(self, event):
         pass
 
     def __get_current_bar(self):
@@ -96,6 +97,6 @@ class EmaStrategy(Strategy):
 
     def __push_signal_event(self):
         e = Event(type_=EVENT_SIGNAL)
-        e.dict_ = {'symbol': self.symbol, 'target_position': self.context.target_position}
+        e.dict_ = {'identifier': self.identifier, 'symbol': self.symbol, 'target_position': self.context.target_position}
         self.event_engine.put(e)
         print('🎲 🎲 🎲 🎲  pushing signal event 🎲 🎲 🎲 🎲  strategy target_position is %s' % self.context.target_position)
