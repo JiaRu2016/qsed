@@ -28,6 +28,7 @@ class bitmexTargetPositionOMS(object):
         self.bm_ws_trading.connect()
         self.bm_ws_trading.subscribe(self.symbols)
         self.bm_ws_trading.wait_for_initial_status()  # 等待的初始信息
+
         self.actual_position = self.bm_ws_trading.actual_position  # 由websocket接收的信息计算出的实际仓位 `position`
         self.unfilled_qty = self.bm_ws_trading.unfilled_qty  # 由websocket接收的信息计算出的未成交委托  `order`
         
@@ -59,16 +60,15 @@ class bitmexTargetPositionOMS(object):
     def trade_to_target(self, symbol):
         if symbol not in self.symbols:
             self.logger.warning('Calling `trade_to_target` but arg `symbol` is not in self.symbols\n' + 
-                                'symbol=%s\n' + 
-                                'self.symbols=%s' % (symbol, self.symbols))
+                                'symbol=%s\n' % symbol +
+                                'self.symbols=%s' % self.symbols)
             
         target_pos = self.target_position.get(symbol)  # int
         actual_pos = self.actual_position.get(symbol, 0)  # int
         
         if target_pos is None:
             self.logger.warning('Calling `trade_to_target()` but arg `symbol` is not in self.target_position\n' + 
-                                'symbol=%\n' + 
-                                'self.target_position=%s' % (symbol, self.target_position))
+                                'symbol=%s\nself.target_position=%s' % (symbol, self.target_position))
         
         # 这里采用比较暴力的办法：直接cancel_all_orders, 再挂目标仓位与实际仓位差值的单子
         # 有优化的空间，eg. bitmex支持改单；

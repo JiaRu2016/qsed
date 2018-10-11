@@ -2,9 +2,10 @@ from bitmex.GlobalSettings import GlobalSettings
 from bitmex.bitmexDataHandler import bitmexDataHandler
 # from bitmex.OMS import bitmexTargetPositionOMS
 from event.eventEngine import eventEngine
-from event.eventType import EVENT_TICK, EVENT_BAR_OPEN, EVENT_BAR_CLOSE, EVENT_SIGNAL, EVENT_TARGET_POSITION
+from event.eventType import EVENT_ORDERBOOK, EVENT_TICK, EVENT_BAR_OPEN, EVENT_BAR_CLOSE, EVENT_SIGNAL, EVENT_TARGET_POSITION
 from EmaStrategy import EmaStrategy
 from CtaNaivePortfolio import CtaNaivePortfolio
+from bitmexTargetPositionExecutor import bitmexTargetPositionExecutor
 import queue
 import time
 
@@ -54,13 +55,12 @@ class MainEngine(object):
             self.event_engine.register(EVENT_BAR_CLOSE, strategy.on_bar_close)
 
 
-        # portfolio  TODO: multiply portfolios
-
+        # portfolio  TODO: multiple portfolios
         self.portfolio = CtaNaivePortfolio()
         self.portfolio.add_event_engine(self.event_engine)
         identifier_multiplier = {
-            'EmaStrategy_XBTUSD_15s_8888': 10,
-            'EmaStrategy_XBTUSD_15s_9999': 20
+            'EmaStrategy_XBTUSD_15s_8888': 18,
+            'EmaStrategy_XBTUSD_15s_9999': 36
         }
         symbol_multiplier = {
             'XBTUSD': 1
@@ -68,12 +68,14 @@ class MainEngine(object):
         self.portfolio.config(identifier_multiplier=identifier_multiplier, symbol_multiplier=symbol_multiplier)
         self.event_engine.register(EVENT_SIGNAL, self.portfolio.on_signal_event)
 
-        # # executor
-        # self.oms = bitmexTargetPositionOMS()
-        #
-        # self.oms.add_event_engine(self.event_engine)
-        # self.event_engine.register(EVENT_TARGET_POSITION, self.oms.on_target_position_event)
-        # self.event_engine.register(EVENT_ORDERBOOK, self.oms.on_orderbook_event)
+        # executor
+        self.executor = bitmexTargetPositionExecutor(self.g)
+        self.executor.add_event_engine(self.event_engine)
+        self.executor.add_data_handler(self.data_handler)
+
+        self.event_engine.register(EVENT_TARGET_POSITION, self.executor.on_target_position_event)
+        self.event_engine.register(EVENT_TICK, self.executor.on_tick_event)
+        self.event_engine.register(EVENT_ORDERBOOK, self.executor.on_orderbook_event)
 
     def start(self):
         self.event_engine.start()          # 启动事件引擎

@@ -1,6 +1,6 @@
-from bitmexWS import bitmexWS
-from bitmexREST import bitmexREST
-from utils import generate_logger
+from .bitmexWS import bitmexWS
+from .bitmexREST import bitmexREST
+from .utils import generate_logger
 import time
 
 
@@ -20,6 +20,7 @@ class bitmexWSTrading(bitmexWS):
         self._got_position_partial = False
         
         s = ','.join(self.symbols)
+        # print('~~~~~~~~~~ subscribing %s ' % s)
         self.subscribe_topic('order:%s' % s)
         self.subscribe_topic('position:%s' % s)
         self.subscribe_topic('execution:%s' % s)

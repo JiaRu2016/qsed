@@ -20,10 +20,10 @@ class CtaNaivePortfolio(Portfolio):
     """
 
     def __init__(self):
-        self.identifier_multiplier = {}        # {'EmaStrategy_XBTUSD_15s_9999': 98, 'EmaStrategy_XBTUSD_15s_8888': 100}
-        self.symbol_multiplier = {}            # {'XBTUSD': 1.0, 'ETHUSD': 1.0}
-        self.identifier_target_position = {}   # {'EmaStrategy_XBTUSD_15s_9999': -1, 'EmaStrategy_XBTUSD_15s_8888': 0}
-        self.target_position = {}              # {'XBTUSD': 198, 'ETHUSD':35}
+        self.identifier_multiplier = {}               # {'EmaStrategy_XBTUSD_15s_9999': 98, 'EmaStrategy_XBTUSD_15s_8888': 100}
+        self.symbol_multiplier = {}                   # {'XBTUSD': 1.0, 'ETHUSD': 1.0}
+        self.symbol_identifier_target_position = {}   # {'XBTUSD': {'EmaStrategy_XBTUSD_15s_9999': -1, 'EmaStrategy_XBTUSD_15s_8888': 0}}
+        self.target_position = {}                     # {'XBTUSD': 198, 'ETHUSD':35}
 
     def config(self, identifier_multiplier, symbol_multiplier):
         self.identifier_multiplier = identifier_multiplier
@@ -41,10 +41,13 @@ class CtaNaivePortfolio(Portfolio):
         identifier = dict_['identifier']
         symbol = dict_['symbol']
         pos = dict_['target_position']
-        if identifier in self.identifier_multiplier:
-            self.identifier_target_position[identifier] = pos
-        if symbol in self.symbol_multiplier:
-            self.target_position[symbol] = pos * self.identifier_multiplier[identifier] * self.symbol_multiplier[symbol]
+        if identifier in self.identifier_multiplier and symbol in self.symbol_multiplier:
+            if symbol not in self.symbol_identifier_target_position:
+                self.symbol_identifier_target_position[symbol] = {}
+            self.symbol_identifier_target_position[symbol][identifier] = pos
+            self.target_position[symbol] = sum(tpos * self.identifier_multiplier[idf]
+                                               for idf, tpos in self.symbol_identifier_target_position[symbol].items()) * \
+                                           self.symbol_multiplier[symbol]
 
     def __push_target_position_event(self):
         e = Event(type_=EVENT_TARGET_POSITION)

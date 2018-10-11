@@ -63,7 +63,7 @@ class Portfolio(QsObject):
         raise NotImplementedError
 
 
-class ExecutionHandler(QsObject):
+class TargetPositionExecutor(QsObject):
     """
     TODO: encapsulate bitmex.OMS
     """
@@ -71,5 +71,13 @@ class ExecutionHandler(QsObject):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def on_target_position_event(self):
+    def on_target_position_event(self, event):
+        raise NotImplementedError
+
+    @abstractmethod
+    def on_orderbook_event(self, event):
+        raise NotImplementedError
+
+    @abstractmethod
+    def on_tick_event(self, event):
         raise NotImplementedError
