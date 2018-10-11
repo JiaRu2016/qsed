@@ -22,6 +22,11 @@ inspired by quantstart (www.quantstart.com) series articles:
 
 ## Dirs
 
+
+```
+$ python qsMainEngine.py
+```
+
 ### event-driven-demo/
 
 Demo of quantstart series articles.
