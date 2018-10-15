@@ -6,7 +6,7 @@ from qsDataStructure import Tick, Orderbook
 from bitmex.bitmexWSTrading import bitmexWSTrading
 from bitmex.bitmexREST import bitmexREST
 from bitmexDataHandler import bitmexDataHandler
-from bitmex.utils import generate_logger
+from qsUtils import generate_logger
 
 
 class bitmexTargetPositionExecutor(TargetPositionExecutor):

@@ -4,7 +4,8 @@ from event.eventEngine import Event
 from event.eventType import EVENT_ORDERBOOK, EVENT_TICK, EVENT_BAR_OPEN, EVENT_BAR_CLOSE
 from bitmex.bitmexWSMarket2 import bitmexWSMarket2
 from bitmex.bitmexREST import bitmexREST
-from bitmex.utils import generate_logger, calculate_td_ts, now
+from bitmex.utils import calculate_td_ts
+from qsUtils import generate_logger, now
 import queue
 import threading
 

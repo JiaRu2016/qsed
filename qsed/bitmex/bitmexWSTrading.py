@@ -1,6 +1,6 @@
 from .bitmexWS import bitmexWS
 from .bitmexREST import bitmexREST
-from .utils import generate_logger
+from qsUtils import generate_logger
 import time
 
 
