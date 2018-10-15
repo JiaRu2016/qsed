@@ -1,0 +1,6 @@
+{
+	"log": {
+		"loglevel": "debug",
+		"logfile": "./default_log_file.log"
+	}
+}

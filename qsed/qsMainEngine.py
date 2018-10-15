@@ -1,28 +1,33 @@
-from bitmex.GlobalSettings import GlobalSettings
-from bitmex.bitmexDataHandler import bitmexDataHandler
-# from bitmex.OMS import bitmexTargetPositionOMS
+from bitmex.bitmexAccountSettings import bitmexAccountSettings
+from bitmexDataHandler import bitmexDataHandler
+from bitmexTargetPositionExecutor import bitmexTargetPositionExecutor
+
 from event.eventEngine import eventEngine
 from event.eventType import EVENT_ORDERBOOK, EVENT_TICK, EVENT_BAR_OPEN, EVENT_BAR_CLOSE, EVENT_SIGNAL, EVENT_TARGET_POSITION
 from EmaStrategy import EmaStrategy
 from CtaNaivePortfolio import CtaNaivePortfolio
-from bitmexTargetPositionExecutor import bitmexTargetPositionExecutor
+
 import queue
 import time
+import json
 
 
 class MainEngine(object):
     """主引擎"""
 
-    def __init__(self, g):
+    def __init__(self, g, bitmex_account_settings):
 
-        # 全局设置 (bitmex)   # todo: GlobalSetting切分开来，分成通用的(log)和bitmex的
+        # 全局设置   # todo: GlobalSetting切分开来，分成通用的(log)和bitmex的
         self.g = g
+
+        # bitmex账户设置
+        self.bitmex_account_settings = bitmex_account_settings
 
         # 事件引擎
         self.event_engine = eventEngine()
 
         # 数据引擎 DataHandler
-        self.data_handler = bitmexDataHandler(self.g)  # todo
+        self.data_handler = bitmexDataHandler(self.g, self.bitmex_account_settings)
         self.data_handler.add_event_engine(self.event_engine)
         self.data_handler.register_tick_event('XBTUSD')    # TODO
         self.data_handler.register_bar_event('XBTUSD', '15s')
@@ -69,7 +74,7 @@ class MainEngine(object):
         self.event_engine.register(EVENT_SIGNAL, self.portfolio.on_signal_event)
 
         # executor
-        self.executor = bitmexTargetPositionExecutor(self.g)
+        self.executor = bitmexTargetPositionExecutor(self.g, self.bitmex_account_settings)
         self.executor.add_event_engine(self.event_engine)
         self.executor.add_data_handler(self.data_handler)
 
@@ -94,14 +99,37 @@ class MainEngine(object):
         pass
 
 
+class GlobalSettings(object):
+    """
+    全局设置
+
+    - 日志级别
+    - 日志文件
+    - etc...
+    """
+
+    def __init__(self):
+        self.loglevel = None
+        self.logfile = None
+
+    def from_config_file(self, file):
+        with open(file) as f:
+            st = json.load(f)
+        self.loglevel = st['log']['loglevel']
+        self.logfile = st['log']['logfile']
+
+
 if __name__ == '__main__':
 
     import time
 
     g = GlobalSettings()
-    g.from_config_file('bitmex/global_settings.json')
+    g.from_config_file('./global_settings.json')
 
-    me = MainEngine(g)
+    bitmex_account_settings = bitmexAccountSettings()
+    bitmex_account_settings.from_config_file('bitmex/BITMEX_connect.json')
+
+    me = MainEngine(g, bitmex_account_settings)
     me.start()
     time.sleep(120)
     me.stop()

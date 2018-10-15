@@ -3,10 +3,9 @@ from event.eventType import EVENT_TARGET_POSITION
 from event.eventEngine import Event
 from qsDataStructure import Tick, Orderbook
 
-from bitmex.GlobalSettings import GlobalSettings
 from bitmex.bitmexWSTrading import bitmexWSTrading
 from bitmex.bitmexREST import bitmexREST
-from bitmex.bitmexDataHandler import bitmexDataHandler
+from bitmexDataHandler import bitmexDataHandler
 from bitmex.utils import generate_logger
 
 
@@ -21,18 +20,20 @@ class bitmexTargetPositionExecutor(TargetPositionExecutor):
     超过1分钟未成交，且价格朝不利方向变动，根据最新的last_price重新挂
     """
 
-    def __init__(self, g):
+    def __init__(self, g, account_settings):
 
-        self.logger = generate_logger('bitmexTargetPositionExecutor')
-
-        # bimtex settings (apiKey)
+        # 全局设置
         self.g = g
+        self.logger = generate_logger('bitmexTargetPositionExecutor', self.g.loglevel, self.g.logfile)
+
+        # 账户配置
+        self.account_settings = account_settings
 
         # 目标仓位
         self.target_position = {}       # {symbol: pos}
 
         # 标的
-        self.symbols = ['XBTUSD']     # 订阅哪些标的的持仓信息 # todo: from strategy
+        self.symbols = self.account_settings.symbols     # 订阅哪些标的的持仓信息
 
         # data_handler
         self.data_handler = None
@@ -41,7 +42,7 @@ class bitmexTargetPositionExecutor(TargetPositionExecutor):
         self.event_engine = None
 
         # websocket-trading
-        self.bm_ws_trading = bitmexWSTrading(g.apiKey, g.apiSecret)
+        self.bm_ws_trading = bitmexWSTrading(self.account_settings.apiKey, self.account_settings.apiSecret)
         self.bm_ws_trading.connect()
         self.bm_ws_trading.subscribe(self.symbols)
         self.bm_ws_trading.wait_for_initial_status()  # 等待的初始信息
@@ -50,7 +51,7 @@ class bitmexTargetPositionExecutor(TargetPositionExecutor):
         self.unfilled_qty = self.bm_ws_trading.unfilled_qty  # 由websocket接收的信息计算出的未成交委托  `order`
 
         # rest
-        self.bm_rest = bitmexREST(g.apiKey, g.apiSecret)
+        self.bm_rest = bitmexREST(self.account_settings.apiKey, self.account_settings.apiSecret)
 
     def on_target_position_event(self, event):
         # < EventObject > type_ = eTargetPosition, dict_ = {'XBTUSD': 0}

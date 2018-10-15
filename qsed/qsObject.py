@@ -81,3 +81,11 @@ class TargetPositionExecutor(QsObject):
     @abstractmethod
     def on_tick_event(self, event):
         raise NotImplementedError
+
+
+class AccountSettings(object):
+    """
+    接口设置 eg. userName, apiKey, apiSecret
+    """
+    pass
+

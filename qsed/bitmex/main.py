@@ -1,12 +1,9 @@
 # DEPRECATED, use ROOT/main.py
 
 # 主程序
-from .GlobalSettings import GlobalSettings
-from .bitmexDataHandler import bitmexDataHandler
-from qsDataStructure import Tick, Orderbook
+from .bitmexAccountSettings import GlobalSettings
+from qsed.bitmexDataHandler import bitmexDataHandler
 import queue
-import time
-
 
 # 加载全局设置
 g = GlobalSettings()

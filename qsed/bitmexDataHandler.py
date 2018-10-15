@@ -2,24 +2,30 @@ from qsDataStructure import Orderbook, Tick, Bar, Snapshot
 from qsObject import DataHandler
 from event.eventEngine import Event
 from event.eventType import EVENT_ORDERBOOK, EVENT_TICK, EVENT_BAR_OPEN, EVENT_BAR_CLOSE
-from .bitmexWSMarket2 import bitmexWSMarket2
-from .bitmexREST import bitmexREST
-from .utils import generate_logger, calculate_td_ts, now
+from bitmex.bitmexWSMarket2 import bitmexWSMarket2
+from bitmex.bitmexREST import bitmexREST
+from bitmex.utils import generate_logger, calculate_td_ts, now
 import queue
 import threading
 
 
 class bitmexDataHandler(DataHandler):
-    def __init__(self, g):
-        self.g = g                            # global settings
-        self.event_q = None                   # 全局事件队列
+
+    def __init__(self, g, account_settings):
+
+        self.g = g                                                           # 全局设置
+        self.logger = generate_logger('DataHandler', g.loglevel, g.logfile)  # 日志
+
+        self.account_settings = account_settings  # 账户设置
+        self.symbols = account_settings.symbols   # 订阅的标的  ['XBTUSD', ...]
+
         self.market_data_q = queue.Queue()    # MarketData队列（带数据）
         self.td_run = None                    # __run()函数线程
         self.active = False
-        self.logger = generate_logger('DataHandler', g.loglevel, g.logfile)  # 日志
-        self.symbols = g.symbols               # 订阅的标的  ['XBTUSD', ...]
-        self.tick = {}                         # {symbol: Tick}            # 最新的last_price信息
-        self.orderbook = {}                    # {symbol: Orderbook}       # 最新的orderbook信息
+
+        self.tick = {}            # {symbol: Tick}            # 最新的last_price信息
+        self.orderbook = {}       # {symbol: Orderbook}       # 最新的orderbook信息
+
         self.registered_bar_events = {}   # {'XBTUSD': ['1m', '30s'], ...}
         self.bar = {}                     # {'XBTUSD': {'1m': Bar, '30s': Bar}, ...}
         self.prev_bar = {}                # {'XBTUSD': {'1m': Bar, '30s': Bar}, ...}
@@ -60,8 +66,8 @@ class bitmexDataHandler(DataHandler):
         self.logger.info('DataHandler stopped')
 
     def __construct_bm_ws_market(self):
-        self.bm_ws_market = bitmexWSMarket2(apiKey=None, apiSecret=None, 
-                                            is_test=self.g.is_test, loglevel=self.g.loglevel, logfile=self.g.logfile)
+        self.bm_ws_market = bitmexWSMarket2(apiKey=None, apiSecret=None, is_test=self.account_settings.is_test,
+                                            loglevel=self.g.loglevel, logfile=self.g.logfile)
         self.bm_ws_market.connect()
         self.bm_ws_market.add_market_data_q(self.market_data_q)
         for s in self.symbols:
