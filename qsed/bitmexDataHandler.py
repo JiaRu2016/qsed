@@ -27,6 +27,9 @@ class bitmexDataHandler(DataHandler):
         self.tick = {}            # {symbol: Tick}            # 最新的last_price信息
         self.orderbook = {}       # {symbol: Orderbook}       # 最新的orderbook信息
 
+        self.registered_tick_events = {}         # {'XBTUSD': True}      # todo BITMEX_TICK_BATCH
+        self.registered_orderbook_events = {}    # {'XBTUSD': BITMEX_ORDERBOOK_TOP}   # todo: consts.py 不同的orderbook类型
+
         self.registered_bar_events = {}   # {'XBTUSD': ['1m', '30s'], ...}
         self.bar = {}                     # {'XBTUSD': {'1m': Bar, '30s': Bar}, ...}
         self.prev_bar = {}                # {'XBTUSD': {'1m': Bar, '30s': Bar}, ...}
@@ -92,8 +95,8 @@ class bitmexDataHandler(DataHandler):
         self.__update_tick(tick)
         
         # 2. if 该symbol订阅了tick事件，推送（全局事件队列）
-        if True:
-            self.__push_tick_event(tick.symbol)     # TODO: register_tick_event
+        if self.registered_tick_events.get(tick.symbol):
+            self.__push_tick_event(tick.symbol)
     
     def processOrderbook(self, ob):
         self.logger.debug('💜 💜 💜️ Processing Orderbook... %s' % ob)
@@ -102,8 +105,8 @@ class bitmexDataHandler(DataHandler):
         self.__update_orderbook(ob)
         
         # 2. if 该symbol订阅了orderbook事件，推送（全局事件队列）
-        if True:
-            self.__push_orderbook_event(ob.symbol)   # TODO: register_orderbook_event
+        if self.registered_orderbook_events.get(ob.symbol):
+            self.__push_orderbook_event(ob.symbol)
 
     def __update_tick(self, tick):
         tick.receive_time = now()
@@ -124,10 +127,10 @@ class bitmexDataHandler(DataHandler):
         self.event_engine.put(e)
 
     def register_orderbook_event(self, symbol):
-        pass
+        self.registered_orderbook_events[symbol] = True
 
     def register_tick_event(self, symbol):
-        pass
+        self.registered_tick_events[symbol] = True
     
     def register_bar_event(self, symbol, bar_type):
         """生成何种类型的bar

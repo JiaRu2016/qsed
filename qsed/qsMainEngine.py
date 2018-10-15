@@ -17,7 +17,7 @@ class MainEngine(object):
 
     def __init__(self, g, bitmex_account_settings):
 
-        # 全局设置   # todo: GlobalSetting切分开来，分成通用的(log)和bitmex的
+        # 全局设置
         self.g = g
 
         # bitmex账户设置
@@ -29,7 +29,8 @@ class MainEngine(object):
         # 数据引擎 DataHandler
         self.data_handler = bitmexDataHandler(self.g, self.bitmex_account_settings)
         self.data_handler.add_event_engine(self.event_engine)
-        self.data_handler.register_tick_event('XBTUSD')    # TODO
+        self.data_handler.register_tick_event('XBTUSD')
+        self.data_handler.register_orderbook_event('XBTUSD')
         self.data_handler.register_bar_event('XBTUSD', '15s')
 
         strategy_configs = [
