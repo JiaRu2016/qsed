@@ -1,7 +1,7 @@
 # DEPRECATED, use ROOT/main.py
 
 # 主程序
-from .bitmexAccountSettings import GlobalSettings
+from bitmex.bitmexAccountSettings import GlobalSettings
 from qsed.bitmexDataHandler import bitmexDataHandler
 import queue
 

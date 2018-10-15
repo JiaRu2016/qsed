@@ -2,7 +2,7 @@ from qsDataStructure import Orderbook, Tick, Bar, Snapshot
 from qsObject import DataHandler
 from event.eventEngine import Event
 from event.eventType import EVENT_ORDERBOOK, EVENT_TICK, EVENT_BAR_OPEN, EVENT_BAR_CLOSE
-from bitmex.bitmexWSMarket2 import bitmexWSMarket2
+from bitmex.bitmexWSMarket import bitmexWSMarket
 from bitmex.bitmexREST import bitmexREST
 from bitmex.utils import calculate_td_ts
 from qsUtils import generate_logger, now
@@ -70,8 +70,8 @@ class bitmexDataHandler(DataHandler):
         self.logger.info('DataHandler stopped')
 
     def __construct_bm_ws_market(self):
-        self.bm_ws_market = bitmexWSMarket2(apiKey=None, apiSecret=None, is_test=self.account_settings.is_test,
-                                            loglevel=self.g.loglevel, logfile=self.g.logfile)
+        self.bm_ws_market = bitmexWSMarket(apiKey=None, apiSecret=None, is_test=self.account_settings.is_test,
+                                           loglevel=self.g.loglevel, logfile=self.g.logfile)
         self.bm_ws_market.connect()
         self.bm_ws_market.add_market_data_q(self.market_data_q)
         for s in self.symbols:

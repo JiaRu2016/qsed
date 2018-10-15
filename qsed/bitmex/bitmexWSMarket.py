@@ -1,128 +1,128 @@
-from bitmexWS import bitmexWS
-from bitmexREST import bitmexREST
-from utils import generate_logger
+from .bitmexWS import bitmexWS
+from .bitmexREST import bitmexREST
+from qsUtils import generate_logger
 import time
+from qsDataStructure import Tick, Orderbook
 
-#from qsEvent import MarketEvent
-#from qsObject import Bar
-#from utils import calculate_ts
 
-class MarketEvent(object):
-    def __init__(self, data):
-        self.etype='MARKET'
-        self.data = data
-       
-    
-class Bar(object):
-    
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-    
-    def __repr__(self):
-        return self.__dict__.__repr__()
-    
-    
-def calculate_ts(timestamp, bar_type='1m'):
-    """bitmex-timestamp to ts. eg 2018-09-29T06:00:17.271Z -> 20180929060017"""
-    return timestamp[:16].replace('T', ' ')  # TODO: now only allow '1m'
-
-# TO-MODIFY: 1.multiple symbol 2. no logic related to bar  3. no touch to main event q, instead touch market_data_q
 class bitmexWSMarket(bitmexWS):
     """bitmexWS subscribing market data (single symbol)"""
     
     def __init__(self, *args, **kwargs):
+        """
+        self.symbols:
+        {
+          'XBTUSD': Snapshot(last_price, bid1, ask1, bid1vol, ask1vol, 
+                              last_price_ts, orderbook_ts,
+                              last_price_receiveTime, orderbook_receiveTime)
+        }
+        """
         super().__init__(*args, **kwargs)
-        self.logger = generate_logger('bitmexWS_Market')
+        self.logger = generate_logger('bitmexWS_Market2')
+        self.symbols = {}   
     
-    def addEventQueue(self, q):  # @TODO: remove it. do not touch main event queue directly. use market_data_q
-        self.eventQueue = q
+    def add_market_data_q(self, q):
+        self.market_data_q = q
 
-    def subscribe(self, symbol='XBTUSD', bar_type='1m', push_tick=True):   # @TODO only tick. hold bar in DataHandler
-        self.symbol = symbol
-        self.bar_type = bar_type
-        self.push_tick = push_tick
-        self.subscribe_topic('trade:%s' % symbol)  # TODO: subscribe more topic, such as order book
-        self._got_partial = False
-        self.last_price = None
+    def subscribe(self, symbol, trade=True, orderbook=False):
+        self.symbols[symbol] = dict(trade=trade, orderbook=orderbook)  # 每订阅一个symbol, 都将其添加进self.symbols字典中
+        if trade:
+            self.subscribe_topic('trade:%s' % symbol)  # 订阅成交明细
+        if orderbook:
+            self.subscribe_topic('quote:%s' % symbol)  # 订阅一档委托单簿
         
-    def wait_for_lastprice(self):     # @to-modify, wait for each symbol that has been `subscribe()`ed
-        while self.last_price is None:
-            self.logger.debug('waiting for lastprice ...')
+    def wait_for_data(self, symbols=None, trade=None, orderbook=None):
+        """等待第一个数据的到来
+        symbols: by default wait for all self.symbols
+        trade: if true: 检查last_price是否为None
+        orderbook:  if true: 检查bid1&&bid2是否都不为None
+        """
+        if symbols is None:
+            symbols = self.symbols
+        if trade is None:
+            trade = False
+        if orderbook is None:
+            orderbook = False
+        while True:
+            b_trade = not trade or all(self.symbols[s].last_price is not None for s in symbols)
+            b_orderbook = not orderbook or all(self.symbols[s].bid1 is not None and self.symbols[s].ask1 is not None for s in symbols)
+            if b_trade and b_orderbook:
+                return
+            self.logger.debug('waiting for data ...')
             time.sleep(1)
         
-    def onData(self, msg):
-        if self._got_partial:
-            self._handle_data(msg['data'])   # msg['data'] is a list of dict
-        else:
-            if msg['action'] == 'partial':
-                self._got_partial = True
-                self._handle_init_data(msg['data'])
-                self.logger.debug('Got partial.')
-            elif msg['action'] == 'insert':
-                self.logger.debug('drop data before partial')
+    def onData(self, msg):   # 不处理partial了
+        msg_handler_dict = {
+            'quote': self.__process_quote_msg,
+            'trade': self.__process_trade_msg,
+        }
+        tb = msg.get('table')
+        if tb in msg_handler_dict:
+            func = msg_handler_dict[tb]
+            func(msg)
     
-    def _handle_init_data(self, data):
-        tick_d = data[-1]
-        ts = calculate_ts(tick_d['timestamp'], self.bar_type)
-        tick_price = tick_d['price']
-        self.last_price = tick_price
-        init_bar = Bar(open=tick_price, high=tick_price, low=tick_price, ts=ts)
-        self.current_bar = init_bar
-        self.logger.debug('init_bar: %s' % init_bar)
+    def __process_quote_msg(self, msg):
+        """处理quote订阅：
+        组装 Orderbook()
+        丢进 market_data_q
+        """
+        quote_s = msg['data']
+        for quote in quote_s:
+            ob = Orderbook(symbol=quote['symbol'], 
+                           bid1=quote['bidPrice'], bid1vol=quote['bidSize'], 
+                           ask1=quote['askPrice'], ask1vol=quote['askSize'], 
+                           timestamp = quote['timestamp'])
+            self.market_data_q.put(ob)
     
-    def _handle_data(self, data):
-        # data is list of dict: [{}, {}]
-        # eg 'data': [{'symbol': 'XBTUSD', 'tickDirection': 'PlusTick', 'timestamp': '2018-09-29T06:00:17.271Z', 'price': 6484.5, 'trdMatchID': '87bd9b19-6747-c804-3eae-7a84fc7abcf8', 'foreignNotional': 30, 'grossValue': 462630, 'homeNotional': 0.0046263, 'side': 'Buy', 'size': 30}]
-        for tick_d in data:
-            self._on_tick(tick_d)
+    def __process_trade_msg(self, msg):
+        """处理trade订阅：
+        组装 Tick()
+        丢进 market_data_q
+        """
+        tick_s = msg['data']
+        for tick in tick_s:
+            tk = Tick(symbol=tick['symbol'],
+                      price=tick['price'],
+                      volume=tick['size'],
+                      direction=tick['side'],
+                      timestamp = tick['timestamp'])
+            self.market_data_q.put(tk)
     
-    def _on_tick(self, tick_d):
-        tick_price = tick_d['price']
-        
-        # 更新last_price
-        self.last_tick_price = self.last_price   # move:self.last_price  -> self.last_tick_price
-        self.last_price = tick_price   # **current**_tick_price
-        
-        # bar-generator
-        ts = calculate_ts(tick_d['timestamp'], self.bar_type)  # 'timestamp': '2018-09-29T06:00:17.271Z'
-        if ts > self.current_bar.ts:
-            # bar_close event
-            self.current_bar.close = self.last_tick_price            
-            self.prev_bar = self.current_bar
-            self.current_bar = Bar(open=tick_price, high=tick_price, low=tick_price, ts=ts)
-            
-            bar_close_event = MarketEvent(data={'type': 'BAR_CLOSE'})
-            self.eventQueue.put(bar_close_event)
-            self.logger.debug('bar_close event. prev_bar is %s' % self.prev_bar)
-            
-            
-            # bar_open event
-            bar_open_event = MarketEvent(data={'type': 'BAR_OPEN'})
-            self.eventQueue.put(bar_open_event)
-            self.logger.debug('bar_open event. current_bar is %s' % self.current_bar)
-        else:
-            self.current_bar.high = max(self.current_bar.high, tick_price)
-            self.current_bar.low = min(self.current_bar.low, tick_price)
-        # tick event    
-        if self.push_tick:
-            tick_event = MarketEvent(data={'type':'TICK'})
-            self.eventQueue.put(tick_event)
-            self.logger.debug('tick event: last_price is %s' % tick_d)
+ 
         
 if __name__ == '__main__':
+    
+    print('------------------------ 加载全局设置 -----------------------------')
+    
+    from GlobalSettings import GlobalSettings
+    g = GlobalSettings()
+    g.from_config_file('global_settings.json')
+    print(g.__dict__)
+    
+    print('------------------------ test:bitmexWSMarket2 -----------------------------')
+    
     import queue
     import time
     
-    events = queue.Queue()
-
-    bm_ws_market = bitmexWSMarket()
-    bm_ws_market.addEventQueue(events)
+    market_data_q = queue.Queue()
+    
+    bm_ws_market = bitmexWSMarket2(apiKey=None, apiSecret=None, 
+                                   is_test=g.is_test, loglevel=g.loglevel, logfile=g.logfile)
     bm_ws_market.connect()
-    bm_ws_market.subscribe('XBTUSD', '1m', True)
-    time.sleep(60)
-    bm_ws_market.exit()
+    bm_ws_market.add_market_data_q(market_data_q)
+    for s in g.symbols:
+        bm_ws_market.subscribe(s, trade=True, orderbook=True)
+    bm_ws_market.wait_for_data()
+
     
     print('===============================================')
-    print(bm_ws_market.current_bar)
-    print(bm_ws_market.prev_bar)
-    print(bm_ws_market.last_price)   # 考虑每一秒切个片，丢到eventQueue，作为marketEvent,不然太频繁了
+    while True:
+        try:
+            a = market_data_q.get(timeout=10)
+        except queue.Empty:
+            print('warning: no data in 10 sec')
+        else:
+            if isinstance(a, Tick):
+                print('💛 💛 💛 💛 💛   Tick  💛 💛 💛 💛 💛\n %s' % a)
+            elif isinstance(a, Orderbook):
+                print('✡️ ✡️ ✡️ ✡️ ✡️   Quote  ✡️ ✡️ ✡️ ✡️ ✡️\n %s' % a)
