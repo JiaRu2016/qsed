@@ -5,6 +5,7 @@ from qsDataStructure import Tick, Orderbook
 
 from bitmex.bitmexWSTrading import bitmexWSTrading
 from bitmex.bitmexREST import bitmexREST
+from bitmex.bitmexInstruments import instruments
 from bitmexDataHandler import bitmexDataHandler
 from qsUtils import generate_logger
 
@@ -113,9 +114,12 @@ class bitmexTargetPositionExecutor(TargetPositionExecutor):
             # 构造order
             pos_diff = target_pos - actual_pos
             side = 'Buy' if pos_diff > 0 else 'Sell'
-            slippage = 0.5 * 5    # TODO: slippage is related to symbol. Symbol info const
             drc = 1 if side == 'Buy' else -1
-
+            if symbol in instruments:
+                slippage = instruments[symbol].tickSize * 5
+            else:
+                self.logger.warning('Invalid symbol "%s": not found in bitmex.bitmexInstruments.instruments' % symbol)
+                slippage = 0    # TODO: slippage is related to symbol. Symbol info const
             # last_price as order-limit-price
             assert isinstance(self.data_handler, bitmexDataHandler)
             current_tick = self.data_handler.get_current_tick(symbol)
