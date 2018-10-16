@@ -35,19 +35,19 @@ class Strategy(QsObject):
 
 
     @abstractmethod
-    def on_init(self):
+    def on_init(self, event):
         raise NotImplementedError
 
     @abstractmethod
-    def on_bar_close(self):
+    def on_bar_close(self, event):
         raise NotImplementedError
 
     @abstractmethod
-    def on_bar_open(self):
+    def on_bar_open(self, event):
         raise NotImplementedError
 
     @abstractmethod
-    def on_tick(self):
+    def on_tick(self, event):
         raise NotImplementedError
 
 

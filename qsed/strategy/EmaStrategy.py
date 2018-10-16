@@ -39,7 +39,7 @@ class EmaStrategy(Strategy):
     def add_data_handler(self, data_handler):
         self.data_handler = data_handler
 
-    def on_init(self):
+    def on_init(self, event):
         print('Calling on_init() ...........')
         self.__waiting_for_first_tick()   # todo. this is temp solution
 

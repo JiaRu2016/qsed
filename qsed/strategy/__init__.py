@@ -5,6 +5,7 @@
 
 # 每增加一个策略，都在这里import进来
 
+from .RandomStrategy import RandomStrategy
 from .EmaStrategy import EmaStrategy
 from .TurtleStrategy import TurtleStrategy
 
@@ -13,6 +14,7 @@ from .TurtleStrategy import TurtleStrategy
 # 同样的，每增加一个策略，都在这个字典中手工增加一条记录
 
 STRATEGY_CLASS = {
+    'RandomStrategy': RandomStrategy,
     'EmaStrategy': EmaStrategy,
     'TurtleStrategy': TurtleStrategy
 }
