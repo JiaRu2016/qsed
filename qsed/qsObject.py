@@ -28,7 +28,7 @@ class DataHandler(QsObject):
 
 class Strategy(QsObject):
     """
-    Strategy
+    Strategy  todo: remove on_bar_xxx, this belongs to CTA module
     """
 
     __metaclass__ = ABCMeta

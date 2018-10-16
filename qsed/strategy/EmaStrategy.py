@@ -2,6 +2,7 @@ from qsObject import Strategy
 from qsDataStructure import Tick, Bar
 from event.eventEngine import Event
 from event.eventType import EVENT_SIGNAL
+from ctaObject import CtaStrategyConfig
 import time
 
 
@@ -21,11 +22,12 @@ class EmaStrategy(Strategy):
     """
 
     def __init__(self, config):
+        assert isinstance(config, CtaStrategyConfig)
         self.config = config
-        self.identifier = config['identifier']
-        self.para = config['para']
-        self.symbol = config['symbol']
-        self.bar_type = config['bar_type']
+        self.identifier = config.identifier
+        self.para = config.para
+        self.symbol = config.symbol
+        self.bar_type = config.bar_type
         self.context = EmaContext()
 
         self.event_engine = None

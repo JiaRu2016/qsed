@@ -26,6 +26,8 @@
 # EVENT_ERROR = 'eError.'                 # 错误回报事件
 
 
+# todo: move some events to CTA module, eg. bar_event, target_position_event
+
 # 市场行情相关
 
 EVENT_MARKET = 'eMarket'          # 通用市场行情事件

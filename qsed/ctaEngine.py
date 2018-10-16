@@ -4,18 +4,17 @@ from bitmexTargetPositionExecutor import bitmexTargetPositionExecutor
 
 from event.eventEngine import eventEngine
 from event.eventType import EVENT_ORDERBOOK, EVENT_TICK, EVENT_BAR_OPEN, EVENT_BAR_CLOSE, EVENT_SIGNAL, EVENT_TARGET_POSITION
-from EmaStrategy import EmaStrategy
+from strategy import STRATEGY_CLASS
 from CtaNaivePortfolio import CtaNaivePortfolio
+from ctaObject import CtaPortfolioSettings, CtaStrategyConfig
 
-import queue
-import time
 import json
 
 
-class MainEngine(object):
+class CtaEngine(object):
     """主引擎"""
 
-    def __init__(self, g, bitmex_account_settings):
+    def __init__(self, g, bitmex_account_settings, cta_settings):
 
         # 全局设置
         self.g = g
@@ -33,24 +32,12 @@ class MainEngine(object):
         self.data_handler.register_orderbook_event('XBTUSD')
         self.data_handler.register_bar_event('XBTUSD', '15s')
 
-        strategy_configs = [
-            {
-                'identifier': 'EmaStrategy_XBTUSD_15s_9999',
-                'symbol': 'XBTUSD',
-                'bar_type': '15s',
-                'para': {'slow': 5, 'fast': 10},
-            },
-            {
-                'identifier': 'EmaStrategy_XBTUSD_15s_8888',
-                'symbol': 'XBTUSD',
-                'bar_type': '15s',
-                'para': {'slow': 15, 'fast': 30},
-            }
-        ]
+        assert isinstance(cta_settings, CtaPortfolioSettings)
         self.strategy_pool = []
 
-        for config in strategy_configs:
-            strategy = EmaStrategy(config)
+        for config in cta_settings.strategy_configs:
+            assert isinstance(config, CtaStrategyConfig)
+            strategy = self.__construct_strategy_instance(config)   # todo: 根据`strategy_name`读取相应的策略文件、策略类
             strategy.add_data_handler(self.data_handler)
             strategy.add_event_engine(self.event_engine)
             self.strategy_pool.append(strategy)
@@ -64,14 +51,14 @@ class MainEngine(object):
         # portfolio  TODO: multiple portfolios
         self.portfolio = CtaNaivePortfolio()
         self.portfolio.add_event_engine(self.event_engine)
-        identifier_multiplier = {
-            'EmaStrategy_XBTUSD_15s_8888': 18,
-            'EmaStrategy_XBTUSD_15s_9999': 36
-        }
-        symbol_multiplier = {
-            'XBTUSD': 1
-        }
-        self.portfolio.config(identifier_multiplier=identifier_multiplier, symbol_multiplier=symbol_multiplier)
+        # identifier_multiplier = {
+        #     'EmaStrategy_XBTUSD_15s_8888': 18,
+        #     'EmaStrategy_XBTUSD_15s_9999': 36
+        # }
+        # symbol_multiplier = {
+        #     'XBTUSD': 1
+        # }
+        self.portfolio.config(identifier_multiplier=cta_settings.portfolio, symbol_multiplier=cta_settings.symbol_multiplier)
         self.event_engine.register(EVENT_SIGNAL, self.portfolio.on_signal_event)
 
         # executor
@@ -82,6 +69,14 @@ class MainEngine(object):
         self.event_engine.register(EVENT_TARGET_POSITION, self.executor.on_target_position_event)
         self.event_engine.register(EVENT_TICK, self.executor.on_tick_event)
         self.event_engine.register(EVENT_ORDERBOOK, self.executor.on_orderbook_event)
+
+    def __construct_strategy_instance(self, config):
+        assert isinstance(config, CtaStrategyConfig)
+        if config.strategy_name in STRATEGY_CLASS:
+            kls = STRATEGY_CLASS[config.strategy_name]
+            return kls(config)
+        else:
+            print('Can not find strategy class: %s' % config.strategy_name)
 
     def start(self):
         self.event_engine.start()          # 启动事件引擎
@@ -120,6 +115,7 @@ class GlobalSettings(object):
         self.logfile = st['log']['logfile']
 
 
+
 if __name__ == '__main__':
 
     import time
@@ -130,7 +126,10 @@ if __name__ == '__main__':
     bitmex_account_settings = bitmexAccountSettings()
     bitmex_account_settings.from_config_file('bitmex/BITMEX_connect.json')
 
-    me = MainEngine(g, bitmex_account_settings)
+    cta_settings = CtaPortfolioSettings()
+    cta_settings.from_config_file()
+
+    me = CtaEngine(g, bitmex_account_settings, cta_settings)
     me.start()
     time.sleep(120)
     me.stop()
