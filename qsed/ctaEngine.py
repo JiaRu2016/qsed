@@ -51,13 +51,6 @@ class CtaEngine(object):
         # portfolio  TODO: multiple portfolios
         self.portfolio = CtaNaivePortfolio()
         self.portfolio.add_event_engine(self.event_engine)
-        # identifier_multiplier = {
-        #     'EmaStrategy_XBTUSD_15s_8888': 18,
-        #     'EmaStrategy_XBTUSD_15s_9999': 36
-        # }
-        # symbol_multiplier = {
-        #     'XBTUSD': 1
-        # }
         self.portfolio.config(identifier_multiplier=cta_settings.portfolio, symbol_multiplier=cta_settings.symbol_multiplier)
         self.event_engine.register(EVENT_SIGNAL, self.portfolio.on_signal_event)
 
@@ -128,6 +121,7 @@ if __name__ == '__main__':
 
     cta_settings = CtaPortfolioSettings()
     cta_settings.from_config_file()
+    cta_settings.check()
 
     me = CtaEngine(g, bitmex_account_settings, cta_settings)
     me.start()

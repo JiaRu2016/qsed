@@ -35,7 +35,34 @@ class CtaPortfolioSettings(object):
         1. symbols
         2. bar_types
         """
-        pass
+        # 1. identifier format
+        for config in self.strategy_configs:
+            assert isinstance(config, CtaStrategyConfig)
+            b = config.identifier == '%s_%s_%s_%s' % (config.strategy_name, config.symbol, config.bar_type, config.config_id)
+            if not b:
+                raise ValueError('identifier is not consistent with CtaStrategyConfig content: %s' % config.identifier)
+
+        # 2. portoflio identifier and strategy_configs identifier
+        idf_portfolio = list(self.portfolio.keys())
+        idf_portfolio.sort()
+        idf_strategy = list(config.identifier for config in self.strategy_configs)
+        idf_strategy.sort()
+        if not idf_strategy == idf_portfolio:
+            raise ValueError('identifier in portfolio != identifier in strategy_configs')
+
+        # 3. bar_type
+        bar_type_strategy = list({config.symbol:config.bar_type} for config in self.strategy_configs)
+        bar_type_ = list(self.bar_types)
+        if not all(x in bar_type_strategy for x in bar_type_):
+            raise ValueError('x in bar_type not in bar_type_strategy')
+        if not all(x in bar_type_ for x in bar_type_strategy):
+            raise ValueError('x bar_type_strategy not in bar_type_')
+
+        # 4. symbols
+        symbols_strategy = set(config.symbol for config in self.strategy_configs)
+        symbols_ = set(self.symbols)
+        if not symbols_strategy == symbols_:
+            raise ValueError('symbols in strategy_configs != symbols')
 
 
 class CtaStrategyConfig(object):

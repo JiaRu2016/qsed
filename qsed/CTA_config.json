@@ -1,16 +1,16 @@
 {
   "portfolio": {
     "RandomStrategy_XBTUSD_15s_8888": 3,
-    "RandomStrategy_XBTUSD_15s_9999": 7
+    "RandomStrategy_XBTUSD_1m_9999": 7
   },
   "symbol_multiplier": {"XBTUSD": 1},
   "strategy_configs": [
     {
-      "identifier": "RandomStrategy_XBTUSD_10s_9999",
+      "identifier": "RandomStrategy_XBTUSD_1m_9999",
       "strategy_name": "RandomStrategy",
       "config_id": 9999,
       "symbol": "XBTUSD",
-      "bar_type": "10s",
+      "bar_type": "1m",
       "para": {}
     },
     {
@@ -23,5 +23,5 @@
     }
   ],
   "symbols": ["XBTUSD"],
-  "bar_types": [{"XBTUSD": "15s"}, {"XBTUSD": "10s"}]
+  "bar_types": [{"XBTUSD": "15s"}, {"XBTUSD": "1m"}]
 }

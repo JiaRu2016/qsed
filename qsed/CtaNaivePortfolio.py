@@ -41,13 +41,19 @@ class CtaNaivePortfolio(Portfolio):
         identifier = dict_['identifier']
         symbol = dict_['symbol']
         pos = dict_['target_position']
+
+        print('******** Calling __update_target_position()... idf=%s, symbol=%s, pos = %s' % (identifier, symbol, pos))
+
         if identifier in self.identifier_multiplier and symbol in self.symbol_multiplier:
+            print(1)
             if symbol not in self.symbol_identifier_target_position:
                 self.symbol_identifier_target_position[symbol] = {}
             self.symbol_identifier_target_position[symbol][identifier] = pos
             self.target_position[symbol] = sum(tpos * self.identifier_multiplier[idf]
                                                for idf, tpos in self.symbol_identifier_target_position[symbol].items()) * \
                                            self.symbol_multiplier[symbol]
+
+        print('******** self.target_position is %s' % self.target_position)
 
     def __push_target_position_event(self):
         e = Event(type_=EVENT_TARGET_POSITION)
