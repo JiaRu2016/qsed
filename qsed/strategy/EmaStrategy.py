@@ -1,4 +1,4 @@
-from qsObject import Strategy
+from ctaObject import CtaStrategy
 from qsDataStructure import Tick, Bar
 from event.eventEngine import Event
 from event.eventType import EVENT_SIGNAL
@@ -14,7 +14,7 @@ class EmaContext(object):
         self.ema_slow = None
         self.target_position = 0
 
-class EmaStrategy(Strategy):
+class EmaStrategy(CtaStrategy):
     """EMA Strategy
 
     ema_fast > ema_slow, LONG
@@ -22,12 +22,13 @@ class EmaStrategy(Strategy):
     """
 
     def __init__(self, config):
-        assert isinstance(config, CtaStrategyConfig)
-        self.config = config
-        self.identifier = config.identifier
-        self.para = config.para
-        self.symbol = config.symbol
-        self.bar_type = config.bar_type
+        # assert isinstance(config, CtaStrategyConfig)
+        # self.config = config
+        # self.identifier = config.identifier
+        # self.para = config.para
+        # self.symbol = config.symbol
+        # self.bar_type = config.bar_type
+        super().__init__(config)
         self.context = EmaContext()
 
         self.event_engine = None
@@ -39,7 +40,7 @@ class EmaStrategy(Strategy):
     def add_data_handler(self, data_handler):
         self.data_handler = data_handler
 
-    def on_init(self, event):
+    def on_init(self):
         print('Calling on_init() ...........')
         self.__waiting_for_first_tick()   # todo. this is temp solution
 

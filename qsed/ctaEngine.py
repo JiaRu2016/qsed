@@ -28,25 +28,31 @@ class CtaEngine(object):
         # 数据引擎 DataHandler
         self.data_handler = bitmexDataHandler(self.g, self.bitmex_account_settings)
         self.data_handler.add_event_engine(self.event_engine)
-        self.data_handler.register_tick_event('XBTUSD')
-        self.data_handler.register_orderbook_event('XBTUSD')
-        self.data_handler.register_bar_event('XBTUSD', '15s')
 
         assert isinstance(cta_settings, CtaPortfolioSettings)
+
+        for sym in cta_settings.symbols:
+            self.data_handler.register_tick_event(sym)
+            self.data_handler.register_orderbook_event(sym)
+
+        for d in cta_settings.bar_types:
+            self.data_handler.register_bar_event(list(d.keys())[0], list(d.values())[0])   # todo: list of tuple [(XBTUSD,1m), (XBTUSD, 15s)]
+
+        # strategy
         self.strategy_pool = []
 
         for config in cta_settings.strategy_configs:
-            assert isinstance(config, CtaStrategyConfig)
-            strategy = self.__construct_strategy_instance(config)   # todo: 根据`strategy_name`读取相应的策略文件、策略类
+            strategy = self.__construct_strategy_instance(config)
+            strategy.config = config  # temp. 为了让下面注册事件时config成员是存在的。 todo: CtaStrategy.set_config(config)
             strategy.add_data_handler(self.data_handler)
             strategy.add_event_engine(self.event_engine)
             self.strategy_pool.append(strategy)
 
         for strategy in self.strategy_pool:
+            config = strategy.config
             self.event_engine.register(EVENT_TICK, strategy.on_tick)
-            self.event_engine.register(EVENT_BAR_OPEN, strategy.on_bar_open)
-            self.event_engine.register(EVENT_BAR_CLOSE, strategy.on_bar_close)
-
+            self.event_engine.register(EVENT_BAR_OPEN % (config.symbol, config.bar_type), strategy.on_bar_open)
+            self.event_engine.register(EVENT_BAR_CLOSE % (config.symbol, config.bar_type), strategy.on_bar_close)
 
         # portfolio  TODO: multiple portfolios
         self.portfolio = CtaNaivePortfolio()

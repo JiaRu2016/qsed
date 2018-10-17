@@ -18,7 +18,7 @@ class bitmexWSMarket(bitmexWS):
         }
         """
         super().__init__(*args, **kwargs)
-        self.logger = generate_logger('bitmexWS_Market2')
+        self.logger = generate_logger('bitmexWS_Market')
         self.symbols = {}   
     
     def add_market_data_q(self, q):

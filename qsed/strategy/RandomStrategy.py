@@ -1,4 +1,4 @@
-from qsObject import Strategy
+from ctaObject import CtaStrategy
 from qsDataStructure import Tick, Bar
 from event.eventEngine import Event
 from event.eventType import EVENT_SIGNAL
@@ -8,23 +8,24 @@ import time
 import random
 
 
-class RandomStrategy(Strategy):
+class RandomStrategy(CtaStrategy):
     """随机策略，用于测试"""
 
     def __init__(self, config):
-        assert isinstance(config, CtaStrategyConfig)
-        self.config = config
-        self.identifier = config.identifier
-        self.para = config.para
-        self.symbol = config.symbol
-        self.bar_type = config.bar_type
+        # assert isinstance(config, CtaStrategyConfig)
+        # self.config = config
+        # self.identifier = config.identifier
+        # self.para = config.para
+        # self.symbol = config.symbol
+        # self.bar_type = config.bar_type
+        super().__init__(config)
 
         self.target_position = 0
 
         self.event_engine = None
         self.data_handler = None
 
-    def on_init(self, event):
+    def on_init(self):
         print('Calling on_init() ...........')
 
     def on_bar_close(self, event):

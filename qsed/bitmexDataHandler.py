@@ -163,10 +163,10 @@ class bitmexDataHandler(DataHandler):
                 td, ts = calculate_td_ts(tick.timestamp, bar_type)
                 bar = Bar(symbol=symbol, bar_type=bar_type, td=td, ts=ts, open=tick.price, high=tick.price, low=tick.price)
                 self.bar[symbol][bar_type] = bar
-                self.logger.debug('💙 __init_bar() 💙 self.bar: %s' % self.bar)
+                self.logger.debug('💙 __init_bar() 💙 %s %s 💙 self.bar: %s' % (symbol, bar_type, self.bar[symbol][bar_type]))
                 prev_bar = Bar(symbol=symbol, bar_type=bar_type, td=td, ts=ts-1)
                 self.prev_bar[symbol][bar_type] = prev_bar
-                self.logger.info('💙 __init_bar() 💙 self.prev_bar: %s' % self.prev_bar)
+                self.logger.info('💙 __init_bar() 💙 %s %s 💙 self.prev_bar: %s' % (symbol, bar_type, self.prev_bar[symbol][bar_type]))
 
     def __bar(self, tick):
         symbol = tick.symbol
@@ -198,16 +198,18 @@ class bitmexDataHandler(DataHandler):
                 self.bar[symbol][bar_type].low = min(tick.price, current_bar.low)
 
     def __push_bar_close_event(self, symbol, bar_type):
-        e = Event(type_=EVENT_BAR_CLOSE)
+        e_type = EVENT_BAR_CLOSE % (symbol, bar_type)
+        e = Event(type_=e_type)
         e.dict_ = {'symbol': symbol, 'bar_type': bar_type}
         self.event_engine.put(e)
-        self.logger.info('💙 💙 💙  bar_close event, self.prev_bar is %s' % self.prev_bar)
+        self.logger.info('💙 💙 💙  pushing bar_close_event__%s__%s__, prev_bar is %s' % (symbol, bar_type, self.prev_bar[symbol][bar_type]))
 
     def __push_bar_open_event(self, symbol, bar_type):
-        e = Event(type_=EVENT_BAR_OPEN)
+        e_type = EVENT_BAR_OPEN % (symbol, bar_type)
+        e = Event(type_=e_type)
         e.dict_ = {'symbol': symbol, 'bar_type': bar_type}
         self.event_engine.put(e)
-        self.logger.info('💙 💙 💙  bar_open event, self.bar is %s' % self.bar)
+        self.logger.info('💙 💙 💙  pushing bar_open_event__%s__%s__, bar is %s' % (symbol, bar_type, self.bar[symbol][bar_type]))
 
     def get_current_bar(self, symbol, bar_type):
         try:

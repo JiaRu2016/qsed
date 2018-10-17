@@ -83,16 +83,28 @@ class CtaStrategyConfig(object):
 class CtaStrategy(Strategy):
     """CTA策略"""
 
+    def __init__(self, config):
+        assert isinstance(config, CtaStrategyConfig)
+        self.config = config
+        self.identifier = self.config.identifier
+        self.symbol = self.config.symbol
+        self.bar_type = self.config.bar_type
+        self.para = self.config.para
+        print('Calling CtaStrategy.__init__() ..........')
+
     def on_init(self):
         pass
 
-    def on_bar_close(self):
+    def on_bar_close(self, evnet):
         pass
 
-    def on_bar_open(self):
+    def on_bar_open(self, event):
         pass
 
-    def on_tick(self):
+    def on_tick(self, event):
+        pass
+
+    def on_orderbook(self, event):
         pass
 
 

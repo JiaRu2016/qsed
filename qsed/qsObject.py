@@ -28,22 +28,18 @@ class DataHandler(QsObject):
 
 class Strategy(QsObject):
     """
-    Strategy  todo: remove on_bar_xxx, this belongs to CTA module
+    Strategy
     """
 
     __metaclass__ = ABCMeta
 
 
     @abstractmethod
-    def on_init(self, event):
+    def on_init(self):
         raise NotImplementedError
 
     @abstractmethod
-    def on_bar_close(self, event):
-        raise NotImplementedError
-
-    @abstractmethod
-    def on_bar_open(self, event):
+    def on_orderbook(self, event):
         raise NotImplementedError
 
     @abstractmethod
