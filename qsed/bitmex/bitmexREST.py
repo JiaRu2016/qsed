@@ -36,7 +36,7 @@ class bitmexREST(object):
             'orderQty': qty,
             'price': limit_price,
             'ordType': 'Limit' if limit_price else 'Market',
-            'clOrdID': int(time.time() * 1e6),   # TODO: fix bug Duplicate clOrdID
+            'clOrdID': int(time.time() * 1e6),
             'text': self._add_ts(text)
         }
         self.clientOrderID += 1

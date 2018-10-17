@@ -10,7 +10,7 @@ class bitmexAccountSettings(AccountSettings):
         self.apiKey = None
         self.apiSecret = None
         self.is_test = True   # always True until real trading
-        self.symbols = ['XBTUSD']    # todo: from strategies config
+        self.symbols = []    # todo: from strategies config
     
     def from_config_file(self, file):
         """读取配置文件"""

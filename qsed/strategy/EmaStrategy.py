@@ -14,6 +14,7 @@ class EmaContext(object):
         self.ema_slow = None
         self.target_position = 0
 
+
 class EmaStrategy(CtaStrategy):
     """EMA Strategy
 
@@ -22,12 +23,6 @@ class EmaStrategy(CtaStrategy):
     """
 
     def __init__(self, config):
-        # assert isinstance(config, CtaStrategyConfig)
-        # self.config = config
-        # self.identifier = config.identifier
-        # self.para = config.para
-        # self.symbol = config.symbol
-        # self.bar_type = config.bar_type
         super().__init__(config)
         self.context = EmaContext()
 

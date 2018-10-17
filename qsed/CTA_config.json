@@ -1,7 +1,8 @@
 {
   "portfolio": {
     "RandomStrategy_XBTUSD_15s_8888": 3,
-    "RandomStrategy_XBTUSD_1m_9999": 7
+    "RandomStrategy_XBTUSD_1m_9999": 7,
+    "EmaStrategy_XBTUSD_30s_1001": 50
   },
   "symbol_multiplier": {"XBTUSD": 1},
   "strategy_configs": [
@@ -20,8 +21,16 @@
       "symbol": "XBTUSD",
       "bar_type": "15s",
       "para": {}
+    },
+    {
+      "identifier": "EmaStrategy_XBTUSD_30s_1001",
+      "strategy_name": "EmaStrategy",
+      "config_id": 1001,
+      "symbol": "XBTUSD",
+      "bar_type": "30s",
+      "para": {"fast": 10, "slow": 5}
     }
   ],
   "symbols": ["XBTUSD"],
-  "bar_types": [{"XBTUSD": "15s"}, {"XBTUSD": "1m"}]
+  "bar_types": [{"XBTUSD": "15s"}, {"XBTUSD": "1m"}, {"XBTUSD": "30s"}]
 }

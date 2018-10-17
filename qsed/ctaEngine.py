@@ -36,14 +36,14 @@ class CtaEngine(object):
             self.data_handler.register_orderbook_event(sym)
 
         for d in cta_settings.bar_types:
-            self.data_handler.register_bar_event(list(d.keys())[0], list(d.values())[0])   # todo: list of tuple [(XBTUSD,1m), (XBTUSD, 15s)]
+            assert isinstance(d, dict) and d.__len__() == 1
+            self.data_handler.register_bar_event(list(d.keys())[0], list(d.values())[0])
 
         # strategy
         self.strategy_pool = []
 
         for config in cta_settings.strategy_configs:
             strategy = self.__construct_strategy_instance(config)
-            strategy.config = config  # temp. 为了让下面注册事件时config成员是存在的。 todo: CtaStrategy.set_config(config)
             strategy.add_data_handler(self.data_handler)
             strategy.add_event_engine(self.event_engine)
             self.strategy_pool.append(strategy)
@@ -80,7 +80,7 @@ class CtaEngine(object):
     def start(self):
         self.event_engine.start()          # 启动事件引擎
         self.data_handler.start()          # 启动数据引擎
-        self.data_handler.get_init_data()  # 获取历史回看数据 TODO  正常是先要实时数据，根据第一个tcik时间戳再获取历史数据
+        self.data_handler.get_init_data()  # 获取历史回看数据 TODO  正常是先要实时数据，根据第一个tick时间戳再获取历史数据
         for strategy in self.strategy_pool:
             strategy.on_init()             # 策略初始化  todo fix bug: on_init called before first Tick
 

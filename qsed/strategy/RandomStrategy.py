@@ -12,12 +12,6 @@ class RandomStrategy(CtaStrategy):
     """随机策略，用于测试"""
 
     def __init__(self, config):
-        # assert isinstance(config, CtaStrategyConfig)
-        # self.config = config
-        # self.identifier = config.identifier
-        # self.para = config.para
-        # self.symbol = config.symbol
-        # self.bar_type = config.bar_type
         super().__init__(config)
 
         self.target_position = 0

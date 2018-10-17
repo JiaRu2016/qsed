@@ -119,7 +119,7 @@ class bitmexTargetPositionExecutor(TargetPositionExecutor):
                 slippage = instruments[symbol].tickSize * 5
             else:
                 self.logger.warning('Invalid symbol "%s": not found in bitmex.bitmexInstruments.instruments' % symbol)
-                slippage = 0    # TODO: slippage is related to symbol. Symbol info const
+                slippage = 0
             # last_price as order-limit-price
             assert isinstance(self.data_handler, bitmexDataHandler)
             current_tick = self.data_handler.get_current_tick(symbol)
