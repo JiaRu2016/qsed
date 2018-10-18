@@ -18,7 +18,7 @@ class bitmexDataHandler(DataHandler):
         self.logger = generate_logger('DataHandler', g.loglevel, g.logfile)  # 日志
 
         self.account_settings = account_settings  # 账户设置
-        self.symbols = account_settings.symbols   # 订阅的标的  ['XBTUSD', ...]
+        self.symbols = None                       # 订阅的标的  ['XBTUSD', ...]
 
         self.market_data_q = queue.Queue()    # MarketData队列（带数据）
         self.td_run = None                    # __run()函数线程
@@ -34,8 +34,8 @@ class bitmexDataHandler(DataHandler):
         self.bar = {}                     # {'XBTUSD': {'1m': Bar, '30s': Bar}, ...}
         self.prev_bar = {}                # {'XBTUSD': {'1m': Bar, '30s': Bar}, ...}
 
-    def add_event_engine(self, event_engine):
-        self.event_engine = event_engine      # 事件引擎
+    def set_symbols(self, symbols):
+        self.symbols = symbols
         
     def start(self):
         self.__construct_bm_ws_market()

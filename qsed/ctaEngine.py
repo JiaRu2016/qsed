@@ -31,6 +31,8 @@ class CtaEngine(object):
 
         assert isinstance(cta_settings, CtaPortfolioSettings)
 
+        self.data_handler.set_symbols(cta_settings.symbols)
+
         for sym in cta_settings.symbols:
             self.data_handler.register_tick_event(sym)
             self.data_handler.register_orderbook_event(sym)
@@ -61,7 +63,7 @@ class CtaEngine(object):
         self.event_engine.register(EVENT_SIGNAL, self.portfolio.on_signal_event)
 
         # executor
-        self.executor = bitmexTargetPositionExecutor(self.g, self.bitmex_account_settings)
+        self.executor = bitmexTargetPositionExecutor(self.g, self.bitmex_account_settings, cta_settings.symbols)
         self.executor.add_event_engine(self.event_engine)
         self.executor.add_data_handler(self.data_handler)
 

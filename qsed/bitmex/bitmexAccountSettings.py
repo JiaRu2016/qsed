@@ -10,7 +10,6 @@ class bitmexAccountSettings(AccountSettings):
         self.apiKey = None
         self.apiSecret = None
         self.is_test = True   # always True until real trading
-        self.symbols = []    # todo: from strategies config
     
     def from_config_file(self, file):
         """读取配置文件"""
@@ -21,4 +20,3 @@ class bitmexAccountSettings(AccountSettings):
         self.account = st['account']['userName']
         self.apiKey = st['account']['apiKey']
         self.apiSecret = st['account']['apiSecret']
-        self.symbols = st['symbols']

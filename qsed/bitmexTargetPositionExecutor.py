@@ -21,7 +21,7 @@ class bitmexTargetPositionExecutor(TargetPositionExecutor):
     超过1分钟未成交，且价格朝不利方向变动，根据最新的last_price重新挂
     """
 
-    def __init__(self, g, account_settings):
+    def __init__(self, g, account_settings, symbols):
 
         # 全局设置
         self.g = g
@@ -34,7 +34,7 @@ class bitmexTargetPositionExecutor(TargetPositionExecutor):
         self.target_position = {}       # {symbol: pos}
 
         # 标的
-        self.symbols = self.account_settings.symbols     # 订阅哪些标的的持仓信息
+        self.symbols = symbols     # 订阅哪些标的的持仓信息
 
         # data_handler
         self.data_handler = None
@@ -53,6 +53,9 @@ class bitmexTargetPositionExecutor(TargetPositionExecutor):
 
         # rest
         self.bm_rest = bitmexREST(self.account_settings.apiKey, self.account_settings.apiSecret)
+
+    def set_symbols(self, symbols):
+        self.symbols = symbols
 
     def on_target_position_event(self, event):
         # < EventObject > type_ = eTargetPosition, dict_ = {'XBTUSD': 0}
