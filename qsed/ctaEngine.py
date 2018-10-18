@@ -125,7 +125,7 @@ if __name__ == '__main__':
     g.from_config_file('./global_settings.json')
 
     bitmex_account_settings = bitmexAccountSettings()
-    bitmex_account_settings.from_config_file('bitmex/BITMEX_connect.json')
+    bitmex_account_settings.from_config_file('bitmex/BITMEX_connect.json', which="account_real_trading")
 
     cta_settings = CtaPortfolioSettings()
     cta_settings.from_config_file()

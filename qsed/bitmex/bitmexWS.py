@@ -10,7 +10,7 @@ from qsUtils import generate_logger
 class bitmexWS(object):
     """bitMEX WebSocket"""
     
-    def __init__(self, apiKey=None, apiSecret=None, is_test=True, loglevel='debug', logfile=None):
+    def __init__(self, apiKey=None, apiSecret=None, isTestNet=True, loglevel='debug', logfile=None):
         
         self.logger = generate_logger('bitmexWS', loglevel, logfile)
         
@@ -18,8 +18,8 @@ class bitmexWS(object):
         self.apiSecret = apiSecret
         self.shouldAuth = apiKey is not None and apiSecret is not None
         
-        self.is_test = is_test
-        self.ws_url = 'wss://testnet.bitmex.com/realtime' if is_test else ''
+        self.isTestNet = isTestNet
+        self.ws_url = 'wss://testnet.bitmex.com/realtime' if self.isTestNet else 'wss://www.bitmex.com/realtime'
         
         self.ws = None
         self.wst = None

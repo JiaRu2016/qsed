@@ -70,7 +70,7 @@ class bitmexDataHandler(DataHandler):
         self.logger.info('DataHandler stopped')
 
     def __construct_bm_ws_market(self):
-        self.bm_ws_market = bitmexWSMarket(apiKey=None, apiSecret=None, is_test=self.account_settings.is_test,
+        self.bm_ws_market = bitmexWSMarket(apiKey=None, apiSecret=None, isTestNet=self.account_settings.isTestNet,
                                            loglevel=self.g.loglevel, logfile=self.g.logfile)
         self.bm_ws_market.connect()
         self.bm_ws_market.add_market_data_q(self.market_data_q)

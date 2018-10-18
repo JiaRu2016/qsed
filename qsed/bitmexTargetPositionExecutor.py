@@ -43,7 +43,7 @@ class bitmexTargetPositionExecutor(TargetPositionExecutor):
         self.event_engine = None
 
         # websocket-trading
-        self.bm_ws_trading = bitmexWSTrading(self.account_settings.apiKey, self.account_settings.apiSecret)
+        self.bm_ws_trading = bitmexWSTrading(self.account_settings.apiKey, self.account_settings.apiSecret, self.account_settings.isTestNet)
         self.bm_ws_trading.connect()
         self.bm_ws_trading.subscribe(self.symbols)
         self.bm_ws_trading.wait_for_initial_status()  # 等待的初始信息
@@ -134,9 +134,9 @@ class bitmexTargetPositionExecutor(TargetPositionExecutor):
             try:
                 res = self.bm_rest.place_order(symbol=symbol, side=side, qty=abs(pos_diff), limit_price=price)
             except Exception as e:
-                print('When placing order, an Error raise:\n %s' % e)
+                print('❌ ❌ When placing order, an Error raise:\n %s' % e)
             else:
                 if res.ok:
                     self.logger.info('Successfully Place Order:\n%s' % res.json())
                 else:
-                    self.logger.info('Placeing Order Failed:\n%s' % res.json())
+                    self.logger.info('❌ ❌ ❌  Placeing Order Failed:\n%s' % res.json())

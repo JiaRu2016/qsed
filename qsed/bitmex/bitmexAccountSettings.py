@@ -9,14 +9,15 @@ class bitmexAccountSettings(AccountSettings):
         self.account = None
         self.apiKey = None
         self.apiSecret = None
-        self.is_test = True   # always True until real trading
+        self.is_test = None
     
-    def from_config_file(self, file):
+    def from_config_file(self, file, which="account_test"):
         """读取配置文件"""
         
         with open(file) as f:
             st = json.load(f)
-            
-        self.account = st['account']['userName']
-        self.apiKey = st['account']['apiKey']
-        self.apiSecret = st['account']['apiSecret']
+
+        self.account = st[which]['userName']
+        self.apiKey = st[which]['apiKey']
+        self.apiSecret = st[which]['apiSecret']
+        self.isTestNet = st[which]['isTestNet']
