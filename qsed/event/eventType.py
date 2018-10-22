@@ -32,8 +32,8 @@
 
 EVENT_MARKET = 'eMarket'          # 通用市场行情事件
 
-EVENT_ORDERBOOK = 'eOrderbook'    # ORDERBOOK行情事件
-EVENT_TICK = 'eTick'              # TICK行情事件
+EVENT_ORDERBOOK = 'eOrderbook_%s'    # ORDERBOOK行情事件
+EVENT_TICK = 'eTick_%s'              # TICK行情事件
 EVENT_SNAPSHOT = 'eSnapshot'      # 快照行情事件，500ms切片
 EVENT_BAR_OPEN = 'eBarOpen_%s_%s'       # BAR_OPEN + symbol + bar_type
 EVENT_BAR_CLOSE = 'eBarClose_%s_%s'     # BAR_CLOSE + symbol + bar_type

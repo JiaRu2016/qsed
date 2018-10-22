@@ -52,7 +52,7 @@ class CtaEngine(object):
 
         for strategy in self.strategy_pool:
             config = strategy.config
-            self.event_engine.register(EVENT_TICK, strategy.on_tick)
+            self.event_engine.register(EVENT_TICK % config.symbol, strategy.on_tick)
             self.event_engine.register(EVENT_BAR_OPEN % (config.symbol, config.bar_type), strategy.on_bar_open)
             self.event_engine.register(EVENT_BAR_CLOSE % (config.symbol, config.bar_type), strategy.on_bar_close)
 
@@ -68,8 +68,9 @@ class CtaEngine(object):
         self.executor.add_data_handler(self.data_handler)
 
         self.event_engine.register(EVENT_TARGET_POSITION, self.executor.on_target_position_event)
-        self.event_engine.register(EVENT_TICK, self.executor.on_tick_event)
-        self.event_engine.register(EVENT_ORDERBOOK, self.executor.on_orderbook_event)
+        for s in cta_settings.symbols:
+            self.event_engine.register(EVENT_TICK % s, self.executor.on_tick_event)
+            self.event_engine.register(EVENT_ORDERBOOK % s, self.executor.on_orderbook_event)
 
     def __construct_strategy_instance(self, config):
         assert isinstance(config, CtaStrategyConfig)
@@ -125,7 +126,7 @@ if __name__ == '__main__':
     g.from_config_file('./global_settings.json')
 
     bitmex_account_settings = bitmexAccountSettings()
-    bitmex_account_settings.from_config_file('bitmex/BITMEX_connect.json', which="account_real_trading")
+    bitmex_account_settings.from_config_file('bitmex/BITMEX_connect.json', which="account_test")
 
     cta_settings = CtaPortfolioSettings()
     cta_settings.from_config_file()

@@ -117,12 +117,12 @@ class bitmexDataHandler(DataHandler):
         self.orderbook[ob.symbol] = ob
 
     def __push_tick_event(self, symbol):
-        e = Event(type_=EVENT_TICK)
+        e = Event(type_=EVENT_TICK % symbol)
         e.dict_ = {'symbol': symbol}
         self.event_engine.put(e)
     
     def __push_orderbook_event(self, symbol):
-        e = Event(type_=EVENT_ORDERBOOK)
+        e = Event(type_=EVENT_ORDERBOOK % symbol)
         e.dict_ = {'symbol': symbol}
         self.event_engine.put(e)
 
