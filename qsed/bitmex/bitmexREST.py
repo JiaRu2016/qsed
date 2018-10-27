@@ -123,11 +123,12 @@ class bitmexREST(object):
         endpoint = 'execution'
         params = {
             'symbol': symbol,
-            'columns': ["execType", "execID", "orderID", "text", "clOrdID", "account", "timestamp",
-                        "symbol", "side", "lastQty", "lastPx",
-                        "orderQty", "price", "ordType", "ordStatus",
-                        "leavesQty", "cumQty", "avgPx",
-                        "commission", "execComm"],
+            'columns': None,
+                # ["execType", "execID", "orderID", "text", "clOrdID", "account", "timestamp",
+                #  "symbol", "side", "lastQty", "lastPx",
+                #  "orderQty", "price", "ordType", "ordStatus",
+                #  "leavesQty", "cumQty", "avgPx",
+                #  "commission", "execComm"],
             'startTime': startTime,
             'endTime': endTime,
         }
