@@ -9,15 +9,15 @@ from qsUtils import generate_logger
 class bitmexREST(object):
     """bitmex REST connection"""
     
-    def __init__(self, apiKey, apiSecret, is_test=True, loglevel='debug', logfile=None):
+    def __init__(self, apiKey, apiSecret, isTestNet=True, loglevel='debug', logfile=None):
         
         self.logger = generate_logger('bitmexREST', loglevel, logfile)
         
         self.apiKey = apiKey
         self.apiSecret = apiSecret
-        self.is_test = is_test
+        self.isTestNet = isTestNet
         
-        self.base_url = 'https://testnet.bitmex.com/api/v1/' if is_test else ''   # no real trading now
+        self.base_url = 'https://testnet.bitmex.com/api/v1/' if self.isTestNet else 'https://www.bitmex.com/api/v1'
         self.clientOrderID = 0
         
     def _send_http_request(self, verb, path, postdict=None, query=None):
@@ -85,25 +85,70 @@ class bitmexREST(object):
     @staticmethod
     def _add_ts(text):
         return '[API][%s] %s' % (str(datetime.datetime.now()), text)
-    
-    
-if __name__ == '__main__':
-    
+
+    def query_history_bars(self):
+        """查询历史K线"""
+        pass
+
+    def query_history_ticks(self):
+        """查询历史tick"""
+        pass
+
+    def query_history_execution(self, symbol, startTime=None, endTime=None):
+        """查询成交历史"""
+        verb = 'GET'
+        endpoint = 'execution'
+        params = {
+            'symbol': symbol,
+            'columns': ["execType", "execID", "orderID", "text", "clOrdID", "account", "timestamp",
+                        "symbol", "side", "lastQty", "lastPx",
+                        "orderQty", "price", "ordType", "ordStatus",
+                        "leavesQty", "cumQty", "avgPx",
+                        "commission", "execComm"],
+            'startTime': startTime,
+            'endTime': endTime,
+        }
+        return self._page_query(verb, endpoint, params)
+
+    def query_history_order(self):
+        """查询委托历史"""
+        pass
+
+    def _page_query(self, verb, endpoint, params, count=500):
+        """通用功能：分页查询
+        bitmex限制查询每次最多500条，利用params中的 start & count 来分页查询
+        """
+        result = []
+        params['count'] = count
+        params['start'] = 0
+        while True:
+            res = self._send_http_request(verb, endpoint, params)
+            if res.ok:
+                data = res.json()
+                result.extend(data)
+                if len(data) < count:
+                    break
+                else:
+                    params['start'] += count
+        return result
+
+
+def test_orders():
+    """下单接口测试"""
+
     import json
+    from bitmex.bitmexAccountSettings import bitmexAccountSettings
 
-    
-    with open('accounts.json') as f:
-        acc = json.load(f)
+    acc = bitmexAccountSettings()
+    acc.from_config_file('bitmex/BITMEX_connect.json')
 
-    apiKey = acc[0]['apiKey']
-    apiSecret = acc[0]['apiSecret']
-    bm = bitmexREST(apiKey, apiSecret)
+    bm = bitmexREST(acc.apiKey, acc.apiSecret, acc.isTestNet)
 
     res = bm.get_positions()
     if res.ok:
         print(res.json()[0]['symbol'], res.json()[0]['currentQty'])
 
-    res = res = bm.get_open_orders()
+    res = bm.get_open_orders()
     if res.ok:
         print(res.json())
 
@@ -114,3 +159,25 @@ if __name__ == '__main__':
     res = bm.place_order(symbol='XBTUSD', side='Buy', qty=120, limit_price=6365.0)
     if res.ok:
         print(res.json())
+
+def test_query_execution():
+    """查询交易相关数据测试"""
+
+    import json
+    import pandas as pd
+
+    from bitmex.bitmexAccountSettings import bitmexAccountSettings
+
+    acc = bitmexAccountSettings()
+    acc.from_config_file('bitmex/BITMEX_connect.json')
+
+    bm = bitmexREST(acc.apiKey, acc.apiSecret, acc.isTestNet)
+
+    result = bm.query_history_execution('XBTUSD', '2018-10-27 00:00:00', '2018-10-27 24:00:00')
+    df = pd.DataFrame(result)
+    print(df)
+
+    
+if __name__ == '__main__':
+    # test_orders()
+    test_query_execution()
