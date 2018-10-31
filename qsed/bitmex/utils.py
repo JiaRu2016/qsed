@@ -18,3 +18,11 @@ def calculate_td_ts(x, bar_type):
         raise ValueError('bar_type pattern should be "\\d[h|m|s]"')
         
     return td, int(ts)
+
+
+VALID_BAR_TYPE = ('1m', '5m', '1h', '1d')
+
+
+def check_bar_type(bar_type):
+    if bar_type not in VALID_BAR_TYPE:
+        raise ValueError("bar_type must be one of %s" % VALID_BAR_TYPE)
