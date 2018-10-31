@@ -3,7 +3,7 @@
 #import zlib
 #import time
 
-from .vnhuobi import DataApi
+from .vnhuobi import HuobiDataApi
 
 #if __name__ == '__main__':
     #while(1):
@@ -89,7 +89,7 @@ def my_onTradeDetail(self, data):
         print(e)
 
 
-api = DataApi()
+api = HuobiDataApi()
 
 api.onTradeDetail = MethodType(my_onTradeDetail, api)
 

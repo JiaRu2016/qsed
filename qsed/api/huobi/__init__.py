@@ -1,1 +1,1 @@
-from .vnhuobi import TradeApi, DataApi
+from .vnhuobi import HuobiTradeApi, HuobiDataApi

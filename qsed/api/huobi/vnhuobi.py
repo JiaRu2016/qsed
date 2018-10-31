@@ -58,7 +58,7 @@ def createSign(params, method, host, path, secretKey):
 
 
 ########################################################################
-class TradeApi(object):
+class HuobiTradeApi(object):
     """交易API"""
     HUOBI = 'huobi'
     HADAX = 'hadax'
@@ -506,7 +506,7 @@ class TradeApi(object):
     ########################################################################
 
 
-class DataApi(object):
+class HuobiDataApi(object):
     """行情接口"""
 
     # ----------------------------------------------------------------------

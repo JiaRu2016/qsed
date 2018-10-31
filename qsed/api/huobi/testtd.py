@@ -8,7 +8,7 @@ def testTrade():
     secretKey = ''
 
     # 创建API对象并初始化
-    api = TradeApi()
+    api = HuobiTradeApi()
 
     api.init(api.HADAX, accessKey, secretKey, mode=api.SYNC_MODE)
     api.start()
