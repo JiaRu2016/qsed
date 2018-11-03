@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 
-def ohlc_plot(ax, df, open_='open', high_='high', low_='low', close_='close', width_=0.8):
+def ohlc_plot(ax, df, open_='open', high_='high', low_='low', close_='close', t_='trading_day', width_=0.7, n_=10):
     assert isinstance(df, pd.DataFrame)
     assert all([x in df.columns for x in (open_, high_, low_, close_)])
     n = len(df)
@@ -32,3 +32,8 @@ def ohlc_plot(ax, df, open_='open', high_='high', low_='low', close_='close', wi
         ax.add_line(vline)
 
     ax.autoscale_view()
+
+    x_label_idx = n_ * np.array(range(len(df) // n_ + 1))
+    x_labels = df[t_].iloc[x_label_idx].values
+    ax.xaxis.set_major_locator(plt.FixedLocator(x_label_idx))
+    ax.xaxis.set_major_formatter(plt.FixedFormatter(x_labels))
