@@ -250,18 +250,27 @@ if __name__ == '__main__':
 
 
     def onData(self, data):
-        if 'table' in data and data['table'] == 'trade':
-            for d in data['data']:
-                txt = '%s, %s' % (d['timestamp'], d['price'])
-                print(txt)
-            print('=================')
+        if 'table' in data:
+            if data['table'] == 'trade':
+                for d in data['data']:
+                    txt = '%s, %s' % (d['timestamp'], d['price'])
+                    print(txt)
+                print('=================')
+            elif data['table'] == 'quote':
+                print(data)
+                for d in data['data']:
+                    txt = 'bid1: %.2f, ask1: %.2f' % (d['bidPrice'], d['askPrice'])
+                    print(txt)
+                    print('-------------')
 
     ws = BitmexWebsocketApi()
     ws.onData = MethodType(onData, ws)
     ws.start()
     # req = {"op": "subscribe", "args": ['order', 'trade', 'position', 'margin']}
     req = {"op": "subscribe", "args": ['trade:XBTUSD']}  # 行情
+    req2 = {"op": "subscribe", "args": ['quote:XBTUSD']}  # 十档订单簿
     ws.sendReq(req)
+    ws.sendReq(req2)
 
     # expires = int(time())
     # method = 'GET'
