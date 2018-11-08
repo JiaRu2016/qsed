@@ -1,7 +1,7 @@
 bitmex/accounts.json
 
 notebooks/
-data/*.pkl
+data/
 
 try/
 .idea/
