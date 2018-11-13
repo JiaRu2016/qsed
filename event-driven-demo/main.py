@@ -7,7 +7,7 @@ import queue
 import time
 
 from CSVDataHandler import CSVDataHandler
-from TurtleStrategy import TurtleStrategy
+from RandomStrategy import RandomStrategy
 from NaivePortfolio import NaivePortfolio
 from BarBacktestExecutionHandler import BarBacktestExecutionHandler
 
@@ -17,7 +17,7 @@ events = queue.Queue()   # 事件队列
 data_handler = CSVDataHandler('data/IF.csv')
 data_handler.set_event_queue(events)
 
-strategy = TurtleStrategy(events, data_handler, {})   # TODO: multiple strategies
+strategy = RandomStrategy(events, data_handler, {})
 portfolio = NaivePortfolio(events, data_handler)
 execution_handler = BarBacktestExecutionHandler(events, data_handler)
 
@@ -45,13 +45,13 @@ while True:
                 execution_handler.on_market_event(event)   # 如果需要通过order_book精确的估计能否成交 ...
 
             elif event.type == 'SIGNAL':
-                portfolio.on_signal_event(event)
+                portfolio.on_signal_event(event)    # 信号 -> 组合
 
             elif event.type == 'ORDER':
-                execution_handler.on_order_event(event)
+                execution_handler.on_order_event(event)    # 执行订单
 
             elif event.type == 'FILL':
-                portfolio.on_fill_event(event)
+                portfolio.on_fill_event(event)    # 根据成交回报更新持仓信息
 
 
 

@@ -10,17 +10,18 @@ class NaivePortfolio(Portfolio):
     """
 
     def __init__(self, event_queue, data_handler):
-        self.event_queque = event_queue
+        self.event_queue = event_queue
         self.data_handler = data_handler
         self.slippage = 1
 
     def on_signal_event(self, event):
-        print('### portofolio ### processing signal event:')
+        print('### portfolio ### processing signal event:')
         print(event)
 
         assert isinstance(event, SignalEvent)
 
         if event.type == 'SIGNAL':
+            # 构造OrderEvent
             order = OrderEvent(
                 timestamp=datetime.datetime.now(),
                 symbol=event.symbol,
@@ -29,12 +30,13 @@ class NaivePortfolio(Portfolio):
                 quantity=1,
                 price=0.0,
             )
-            self.event_queque.put(order)
+            # 放入事件队列
+            self.event_queue.put(order)
 
     def on_fill_event(self, event):
-        # self.current_position ... # TODO
         if event.type == 'FILL':
-            print('### portofolio ### got FILL_EVENT', event)
+            print('### portfolio ### got FILL_EVENT', event)
 
     def on_market_event(self, event):
-        print('### portfolio ### got MARKET_EVENT: ', event)
+        if event.type == 'MARKET':
+            print('### portfolio ### got MARKET_EVENT: ', event)

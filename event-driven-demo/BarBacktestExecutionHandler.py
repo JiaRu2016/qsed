@@ -9,7 +9,7 @@ class BarBacktestExecutionHandler(ExecutionHandler):
 
     模拟成交机制：
     - 当前bar收盘价成交
-    - 成交数量不超过当前bar的一半
+    - todo: 成交数量不超过当前bar的一半
     """
 
     def __init__(self, event_queue, data_handler):
@@ -29,7 +29,7 @@ class BarBacktestExecutionHandler(ExecutionHandler):
                     symbol=event.symbol,
                     direction=event.direction,
                     quantity=event.quantity,
-                    price=self.current_bar_close,
+                    price=self.current_bar_close,   # 按照当前收盘价成交
                     commission=0.0,
                     fill_flag='ALL_FILLED',
                 )

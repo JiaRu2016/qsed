@@ -1,8 +1,10 @@
 from qsObject import Strategy
 from qsEvent import MarketEvent, SignalEvent
+import time
+import random
 
 
-class TurtleStrategy(Strategy):
+class RandomStrategy(Strategy):
     """
     TurtleStrategy
     """
@@ -25,7 +27,11 @@ class TurtleStrategy(Strategy):
             current_bar = self.data_handler.get_current_bar()
             print('=== strategy === current_bar: ', dict(current_bar))
 
-            # TODO on_bar, on_tick etc.
-            signal_event = SignalEvent(symbol='IF', timestamp=-99, signal_direction=1)
+            # 构造SignalEvent
+            symbol = 'IF'
+            rand_signal = random.sample([1, 0, 1], k=1)[0]
+            now = time.time()
+            signal_event = SignalEvent(symbol=symbol, timestamp=now, signal_direction=rand_signal)
 
+            # 放入事件队列
             self.event_queue.put(signal_event)
