@@ -9,10 +9,9 @@ class RandomStrategy(Strategy):
     TurtleStrategy
     """
 
-    def __init__(self, event_queue, data_handler, para):
+    def __init__(self, event_queue, data_handler):
         self.event_queue = event_queue
         self.data_handler = data_handler
-        self.para = para
 
     def on_market_event(self, event):
         """

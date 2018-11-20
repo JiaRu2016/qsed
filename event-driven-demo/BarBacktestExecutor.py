@@ -1,9 +1,9 @@
-from qsObject import ExecutionHandler
+from qsObject import Executor
 from qsEvent import FillEvent, OrderEvent
 import datetime
 
 
-class BarBacktestExecutionHandler(ExecutionHandler):
+class BarBacktestExector(Executor):
     """
     分钟k线数据回测 模拟成交器
 
@@ -36,6 +36,7 @@ class BarBacktestExecutionHandler(ExecutionHandler):
                 self.event_queue.put(fill)
 
             elif event.order_type == 'LMT':
+                # todo
                 pass
 
     def on_market_event(self, event):

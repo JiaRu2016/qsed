@@ -55,9 +55,9 @@ class Portfolio(object):
         raise NotImplementedError('Must implement on_fill_event')
 
 
-class ExecutionHandler(object):
+class Executor(object):
     """
-    Execution Handler 交易执行器
+    Executor交易执行器
 
     - 历史数据回测  自行实现模拟成交机制
     - 实盘交易对接

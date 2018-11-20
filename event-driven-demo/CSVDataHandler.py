@@ -2,6 +2,8 @@ from qsObject import DataHandler
 from qsEvent import MarketEvent
 import os
 import pandas as pd
+import time
+import threading
 
 
 class CSVDataHandler(DataHandler):
@@ -9,32 +11,31 @@ class CSVDataHandler(DataHandler):
     CSVDataHandler
     """
 
-    def __init__(self, file_dir):
+    def __init__(self, event_queue, file_dir, replay_speed=1):
         """
-        - Parse the csv file, save to self.__data
-        - set self.continue_backtest
-        - set self.__cursor
-
-        :param file_dir:
+        DataHandler初始化
         """
         self._parse_csv_files(file_dir)
         self.continue_backtest = True
         self.__cursor = 0
+        self.event_queue = event_queue     # 事件队列
+        self.replay_speed = replay_speed   # 行情回放速度
+        self.run_thread = None             # __run()线程
 
-    def set_event_queue(self, event_queue):
-        """
-        事件队列
-        :param event_queue:
-        :return:
-        """
-        self.events = event_queue
+    def __run(self):
+        while self.continue_backtest:
+            if self.__cursor == len(self.__data) - 1:
+                self.continue_backtest = False
+            else:
+                self.__cursor += 1
+            self.event_queue.put(MarketEvent())   # 生成 MareketEvent
+            print('>>>>>>>>>>>>>>>>>>>>> putting MarketEvent <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+            time.sleep(self.replay_speed)
 
-    def update(self):
-        if self.__cursor == len(self.__data) - 1:
-            self.continue_backtest = False
-        else:
-            self.__cursor += 1
-        self.events.put(MarketEvent())
+    def run(self):
+        self.run_thread = threading.Thread(target=self.__run)
+        self.run_thread.start()
+        
 
     def get_prev_bars(self, n=1, columns=None):
         """
