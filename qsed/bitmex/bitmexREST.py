@@ -134,9 +134,17 @@ class bitmexREST(object):
         }
         return self._page_query(verb, endpoint, params)
 
-    def query_history_order(self):
+    def query_history_order(self, symbol, startTime=None, endTime=None):
         """查询委托历史"""
-        pass
+        verb = 'GET'
+        endpoint = 'order'
+        params = {
+            'symbol': symbol,
+            'columns': None,
+            'startTime': startTime,
+            'endTime': endTime
+        }
+        return self._page_query(verb, endpoint, params)
 
     def _page_query(self, verb, endpoint, params, count=500):
         """通用功能：分页查询
