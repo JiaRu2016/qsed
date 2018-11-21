@@ -146,6 +146,17 @@ class bitmexREST(object):
         }
         return self._page_query(verb, endpoint, params)
 
+    def query_history_wallet(self, currency='XBt'):
+        """查询钱包余额历史"""
+        verb = 'GET'
+        endpoint = 'user/walletHistory'
+        params = {
+            'currency': currency,
+            'count': 500,
+            'start': 0
+        }
+        return self._page_query(verb, endpoint, params)
+
     def _page_query(self, verb, endpoint, params, count=500):
         """通用功能：分页查询
         bitmex限制查询每次最多500条，利用params中的 start & count 来分页查询
