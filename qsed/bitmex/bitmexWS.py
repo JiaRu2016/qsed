@@ -5,6 +5,8 @@ import time
 import logging
 from .APIKeyAuth import generate_nonce, generate_signature
 from qsUtils import generate_logger
+import sys
+import datetime
 
 
 class bitmexWS(object):
@@ -91,7 +93,7 @@ class bitmexWS(object):
     def __on_message(self, ws, message):
         """Handler for parsing WS messages"""
         
-        #print("========================== MESSAGE ==========================")
+        print("========================== MESSAGE ==========================")
         #print(message)
         
         if message == 'pong':
@@ -119,9 +121,25 @@ class bitmexWS(object):
             self.logger.warn('Unclassified msg; %s' % msg)
     
     def onData(self, msg):
+        print(' ✈️  ✈️  ✈️  ✈️  onData()  ✈️  ✈️  ✈️  ✈️ ')
+        # for i in range(5):
+        #     print(i)
+        #     time.sleep(1)
+
+        if 'data' in msg:
+            if isinstance(msg['data'], list):
+                if 'timestamp' in msg['data'][0]:
+                    # '2019-01-07T14:19:21.770Z'
+                    ts_exchange = datetime.datetime.strptime(msg['data'][0]['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                    ts_local = datetime.datetime.utcnow()
+                    ts_decay = ts_local - ts_exchange
+                    print('%s, %s, ------>  %s' % (ts_exchange, ts_local, ts_decay))
+
+                    if ts_decay > datetime.timedelta(seconds=3):
+                        self.logger.warning('ts_decay > 3sec: %s' % ts_decay)
         #print('Calling bitmexWS.onData()')   # expected to be overwrite
-        print('============================================')
-        print(msg)
+        #print('============================================')
+        #print(msg)
         
     def __on_error(self, ws, error):
         self.logger.warning('Calling ws.__on_error()')
@@ -140,18 +158,20 @@ class bitmexWS(object):
         
         
 if __name__ == '__main__':
-    with open('accounts.json') as f:
+    with open('./bitmex/accounts.json') as f:
         acc = json.load(f)
-
     apiKey = acc[0]['apiKey']
     apiSecret = acc[0]['apiSecret']
-    loglevel = 'debug'
-    logfile = './test-bitmexWS.log'
-
+    print(acc[0]['userName'])
+    print('is TestNet? ', acc[0]['isTestNet'])
     print(apiKey)
     print(apiSecret)
+    print('*********************************')
+
+    loglevel = 'debug'
+    logfile = './jiaru2015@gmail-bitmexWS.log'
     
-    what = 'market'  # <<<<------- change this to see subscribed data structure
+    what = 'depth'  # <<<<------- change this to see subscribed data structure
     
     if what == 'order':
         #### 订阅交易信息
@@ -173,6 +193,11 @@ if __name__ == '__main__':
         bmws = bitmexWS(apiKey=None, apiSecret=None)
         bmws.connect()
         bmws.subscribe_topic('quote:XBTUSD')
+    elif what == 'depth':
+        #### （无需Authentication）  "quote",       // 全部委托列表
+        bmws = bitmexWS(apiKey=None, apiSecret=None)
+        bmws.connect()
+        bmws.subscribe_topic('orderBook10:XBTUSD')
     else:
         print('invalid subscribe')
     time.sleep(100)
