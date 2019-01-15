@@ -140,3 +140,29 @@ class bitmexTargetPositionExecutor(TargetPositionExecutor):
                     self.logger.info('Successfully Place Order:\n%s' % res.json())
                 else:
                     self.logger.info('❌ ❌ ❌  Placeing Order Failed:\n%s' % res.json())
+
+    def test(self):
+        """单元测试
+
+        发单测试：单开一个线程，不断push TARGET_POSITION_EVENT，主动调用 on_target_position_event()
+        延迟测试：收集4个时间戳，分析各种下单延迟
+
+        :return:
+        """
+        pass
+
+
+if __name__ == '__main__':
+    import time
+    from bitmex.bitmexAccountSettings import bitmexAccountSettings
+    from ctaEngine import GlobalSettings
+
+    g = GlobalSettings()
+    g.from_config_file('./global_settings.json')
+
+    bitmex_account_settings = bitmexAccountSettings()
+    bitmex_account_settings.from_config_file('bitmex/BITMEX_connect.json', which="account_test")
+
+    oms = bitmexTargetPositionExecutor(g, bitmex_account_settings, ['XBTUSD'])
+
+    oms.test()

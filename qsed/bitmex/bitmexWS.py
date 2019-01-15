@@ -134,9 +134,12 @@ class bitmexWS(object):
                     ts_local = datetime.datetime.utcnow()
                     ts_decay = ts_local - ts_exchange
                     print('%s, %s, ------>  %s' % (ts_exchange, ts_local, ts_decay))
-
+                    print(msg)
                     if ts_decay > datetime.timedelta(seconds=3):
                         self.logger.warning('ts_decay > 3sec: %s' % ts_decay)
+                else:
+                    print('timestamp not in msg["data"][0]')
+                    print(msg)
         #print('Calling bitmexWS.onData()')   # expected to be overwrite
         #print('============================================')
         #print(msg)
@@ -171,7 +174,7 @@ if __name__ == '__main__':
     loglevel = 'debug'
     logfile = './jiaru2015@gmail-bitmexWS.log'
     
-    what = 'depth'  # <<<<------- change this to see subscribed data structure
+    what = 'quote'  # <<<<------- change this to see subscribed data structure
     
     if what == 'order':
         #### 订阅交易信息
@@ -183,21 +186,29 @@ if __name__ == '__main__':
         bmws = bitmexWS(apiKey=apiKey, apiSecret=apiSecret)
         bmws.connect()
         bmws.subscribe_topic('instrument:XBTUSD')
-    elif what == 'market':
+    elif what == 'trade':
         #### 订阅行情 无需Authentication
         bmws = bitmexWS(apiKey=None, apiSecret=None)
         bmws.connect()
         bmws.subscribe_topic('trade:XBTUSD')
     elif what == 'quote':
-        #### （无需Authentication）  "quote",       // 最高层的委托列表
+        #### （无需Authentication）  "quote",       // 最高层的委托列表（只有价格变动才推送？）
         bmws = bitmexWS(apiKey=None, apiSecret=None)
         bmws.connect()
         bmws.subscribe_topic('quote:XBTUSD')
-    elif what == 'depth':
-        #### （无需Authentication）  "quote",       // 全部委托列表
+    elif what == 'depth-10':
+        #### （无需Authentication）  "quote",       // 10层委托列表
         bmws = bitmexWS(apiKey=None, apiSecret=None)
         bmws.connect()
         bmws.subscribe_topic('orderBook10:XBTUSD')
+    elif what == 'depth-L2':
+        bmws = bitmexWS(apiKey=None, apiSecret=None)
+        bmws.connect()
+        bmws.subscribe_topic('orderBookL2:XBTUSD')
+    elif what == 'depth-L2-25':
+        bmws = bitmexWS(apiKey=None, apiSecret=None)
+        bmws.connect()
+        bmws.subscribe_topic('orderBookL2_25:XBTUSD')
     else:
         print('invalid subscribe')
     time.sleep(100)
