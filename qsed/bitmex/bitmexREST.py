@@ -28,7 +28,13 @@ class bitmexREST(object):
             auth = APIKeyAuthWithExpires(self.apiKey, self.apiSecret)
         else:
             auth = None
-        return requests.request(verb, url, json=postdict, params=query, auth=auth)
+        # latency test
+        ts0 = time.time()
+        resp = requests.request(verb, url, json=postdict, params=query, auth=auth)
+        ts1 = time.time()
+        latency = round((ts1 - ts0) * 1000)
+        print('Latency in millisecond: ', latency)
+        return resp
     
     def place_order(self, symbol, side, qty, limit_price, text=''):
         """place order"""
@@ -191,13 +197,13 @@ def test_orders():
 
     bm = bitmexREST(acc.apiKey, acc.apiSecret, acc.isTestNet)
 
-    res = bm.get_positions()
-    if res.ok:
-        print(res.json()[0]['symbol'], res.json()[0]['currentQty'])
-
-    res = bm.get_open_orders()
-    if res.ok:
-        print(res.json())
+    # res = bm.get_positions()
+    # if res.ok:
+    #     print(res.json()[0]['symbol'], res.json()[0]['currentQty'])
+    #
+    # res = bm.get_open_orders()
+    # if res.ok:
+    #     print(res.json())
 
     res = bm.place_order(symbol='XBTUSD', side='Sell', qty=100, limit_price=None)
     if res.ok:
@@ -248,6 +254,6 @@ def test_query_market():
 
     
 if __name__ == '__main__':
-    # test_orders()
+    test_orders()
     # test_query_execution()
-    test_query_market()
+    # test_query_market()
